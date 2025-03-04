@@ -18,9 +18,14 @@ use rerun::{Arrows2D, Arrows3D, Points2D, Points3D};
 fn rerun_init(opt: &mut GaussNewton, dim: &str, obj: &str) {
     // Setup the rerun & the callback
     let socket = SocketAddrV4::new("0.0.0.0".parse().unwrap(), 9876);
-    let rec = rerun::RecordingStreamBuilder::new("rerun_example_dna_abacus")
+    let rec = rerun::RecordingStreamBuilder::new("factrs-g2o-example")
         .connect_tcp_opts(SocketAddr::V4(socket), rerun::default_flush_timeout())
         .unwrap();
+
+    // Log the graph
+    let (nodes, edges) = opt.graph().into();
+    rec.log_static("graph", &[&nodes as &dyn rerun::AsComponents, &edges])
+        .expect("log failed");
 
     let topic = "base/solution";
 
