@@ -1,10 +1,12 @@
+use std::collections::HashSet;
+
 use rerun::{
-    components::RotationQuat, Arrows2D, Arrows3D, AsComponents, Points2D, Points3D, Quaternion,
-    Rotation3D, Transform3D, Vec2D, Vec3D,
+    components::RotationQuat, Arrows2D, Arrows3D, AsComponents, GraphEdges, GraphNodes, Points2D,
+    Points3D, Quaternion, Rotation3D, Transform3D, Vec2D, Vec3D,
 };
 
 use crate::{
-    containers::Values,
+    containers::{DefaultSymbolHandler, Graph, GraphFormatter, KeyFormatter, Values},
     optimizers::OptObserver,
     variables::{MatrixLieGroup, VariableDtype, VectorVar2, VectorVar3, SE2, SE3, SO2, SO3},
 };
@@ -273,18 +275,27 @@ impl<'a> FromIterator<&'a SE2> for Arrows2D {
         let mut colors = Vec::new();
 
         for se2 in iter {
-            let this: Arrows2D = se2.into();
-            vectors.extend_from_slice(&this.vectors);
-            origins.extend_from_slice(
-                &this
-                    .origins
-                    .expect("SE2 missing origins in conversion to rerun::Arrows2D"),
-            );
-            colors.extend_from_slice(
-                &this
-                    .colors
-                    .expect("SE2 missing colors in conversion to rerun::Arrows2D"),
-            );
+            let mat = se2.rot().to_matrix().map(|x| x as f32);
+            let vec_x: [f32; 2] = mat
+                .column(0)
+                .as_slice()
+                .try_into()
+                .expect("Failed to convert to slice");
+            let vec_y: [f32; 2] = mat
+                .column(1)
+                .as_slice()
+                .try_into()
+                .expect("Failed to convert to slice");
+
+            let pos = [se2.x() as f32, se2.y() as f32];
+            let pos = Vec2D::new(pos[0], pos[1]);
+
+            vectors.push(vec_x);
+            vectors.push(vec_y);
+            origins.push(pos);
+            origins.push(pos);
+            colors.push([255, 0, 0]);
+            colors.push([0, 255, 0]);
         }
 
         Arrows2D::from_vectors(vectors)
@@ -327,18 +338,34 @@ impl<'a> FromIterator<&'a SE3> for Arrows3D {
         let mut colors = Vec::new();
 
         for se3 in iter {
-            let this: Arrows3D = se3.into();
-            vectors.extend_from_slice(&this.vectors);
-            origins.extend_from_slice(
-                &this
-                    .origins
-                    .expect("SE3 missing origins in conversion to rerun::Arrows3D"),
-            );
-            colors.extend_from_slice(
-                &this
-                    .colors
-                    .expect("SE3 missing colors in conversion to rerun::Arrows3D"),
-            );
+            let mat = se3.rot().to_matrix().map(|x| x as f32);
+            let vec_x: [f32; 3] = mat
+                .column(0)
+                .as_slice()
+                .try_into()
+                .expect("Failed to convert to slice");
+            let vec_y: [f32; 3] = mat
+                .column(1)
+                .as_slice()
+                .try_into()
+                .expect("Failed to convert to slice");
+            let vec_z: [f32; 3] = mat
+                .column(2)
+                .as_slice()
+                .try_into()
+                .expect("Failed to convert to slice");
+            let pos: VectorVar3 = se3.xyz().clone_owned().into();
+            let pos: Vec3D = pos.into();
+
+            vectors.push(vec_x);
+            vectors.push(vec_y);
+            vectors.push(vec_z);
+            origins.push(pos);
+            origins.push(pos);
+            origins.push(pos);
+            colors.push([255, 0, 0]);
+            colors.push([0, 255, 0]);
+            colors.push([0, 0, 255]);
         }
 
         Arrows3D::from_vectors(vectors)
@@ -357,6 +384,71 @@ impl<'a> FromIterator<&'a SE3> for Points3D {
         }
 
         Points3D::new(points)
+    }
+}
+
+// ------------------------- Graph ------------------------- //
+impl<'g, KF: KeyFormatter> From<&GraphFormatter<'g, KF>> for (GraphNodes, GraphEdges) {
+    fn from(graph: &GraphFormatter<'g, KF>) -> (GraphNodes, GraphEdges) {
+        let g = graph.graph;
+
+        // Get all keys and their names
+        let keys_raw = g
+            .iter()
+            .flat_map(|f| f.keys())
+            .copied()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        let key_names = keys_raw
+            .iter()
+            .map(|k| {
+                let mut s = String::new();
+                KF::fmt(&mut s, *k).expect("Failed to write to string");
+                s
+            })
+            .collect::<Vec<_>>();
+        let keys = keys_raw.into_iter().map(|k| format!("{}", k.0));
+
+        // Not sure if this is officially supported, but missing nodes leads to dots for
+        // nodes
+        // So we purposefully don't put nodes into the graph for the factors
+        // let nodes = (0..g.len()).map(|x| format!("factor{}", x)).chain(keys);
+        // let labels = (0..g.len()).map(|_| String::new()).chain(key_names);
+        let nodes = keys;
+        let labels = key_names;
+        let nodes = GraphNodes::new(nodes).with_labels(labels);
+
+        // Get all edges
+        let mut edges = Vec::new();
+        for (i, f) in g.iter().enumerate() {
+            for k in f.keys() {
+                edges.push((format!("{}", k.0), format!("factor{}", i)));
+            }
+        }
+        let edges = GraphEdges::new(edges);
+
+        (nodes, edges)
+    }
+}
+
+impl<'g, KF: KeyFormatter> From<GraphFormatter<'g, KF>> for (GraphNodes, GraphEdges) {
+    fn from(graph: GraphFormatter<'g, KF>) -> (GraphNodes, GraphEdges) {
+        (&graph).into()
+    }
+}
+
+impl From<&Graph> for (GraphNodes, GraphEdges) {
+    fn from(graph: &Graph) -> (GraphNodes, GraphEdges) {
+        let formatter = GraphFormatter::<DefaultSymbolHandler>::new(graph);
+        (&formatter).into()
+    }
+}
+
+impl From<Graph> for (GraphNodes, GraphEdges) {
+    fn from(graph: Graph) -> (GraphNodes, GraphEdges) {
+        let formatter = GraphFormatter::<DefaultSymbolHandler>::new(&graph);
+        (&formatter).into()
     }
 }
 

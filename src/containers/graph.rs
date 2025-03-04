@@ -105,6 +105,10 @@ impl Graph {
             sparsity_order,
         }
     }
+
+    pub fn iter(&self) -> std::slice::Iter<Factor> {
+        self.factors.iter()
+    }
 }
 
 impl Debug for Graph {
@@ -113,12 +117,21 @@ impl Debug for Graph {
     }
 }
 
+impl IntoIterator for Graph {
+    type Item = Factor;
+    type IntoIter = std::vec::IntoIter<Factor>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.factors.into_iter()
+    }
+}
+
 /// Formatter for a graph
 ///
 /// Specifically, this can be used if custom symbols are desired. See
 /// [tests/custom_key](https://github.com/rpl-cmu/factrs/blob/dev/tests/custom_key.rs) for examples.
 pub struct GraphFormatter<'g, KF> {
-    graph: &'g Graph,
+    pub graph: &'g Graph,
     kf: PhantomData<KF>,
 }
 
