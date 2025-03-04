@@ -35,7 +35,9 @@
 //! using the [test_optimizer](crate::test_optimizer) macro to run a handful of
 //! simple tests over a few different variable types to ensure correctness.
 mod traits;
-pub use traits::{OptError, OptObserver, OptObserverVec, OptParams, OptResult, Optimizer};
+pub use traits::{
+    BaseOptParams, OptError, OptObserver, OptObserverVec, OptParams, OptResult, Optimizer,
+};
 
 mod macros;
 
@@ -44,6 +46,9 @@ pub use gauss_newton::GaussNewton;
 
 mod levenberg_marquardt;
 pub use levenberg_marquardt::LevenMarquardt;
+
+mod gnc;
+pub use gnc::GraduatedNonConvexity;
 
 // These aren't tests themselves, but are helpers to test optimizers
 #[cfg(test)]
@@ -70,7 +75,7 @@ pub mod test {
         new: &dyn Fn(Graph) -> O,
     ) where
         PriorResidual<T>: Residual,
-        O: Optimizer<Input = Values>,
+        O: Optimizer,
     {
         let t = VectorX::from_fn(T::DIM, |_, i| ((i + 1) as dtype) / 10.0);
         let p = T::exp(t.as_view());
@@ -106,7 +111,7 @@ pub mod test {
     ) where
         PriorResidual<T>: Residual,
         BetweenResidual<T>: Residual,
-        O: Optimizer<Input = Values>,
+        O: Optimizer,
         Const<DIM>: ToTypenum,
         AllocatorBuffer<DimNameSum<Const<DIM>, Const<DIM>>>: Sync + Send,
         DefaultAllocator: DualAllocator<DimNameSum<Const<DIM>, Const<DIM>>>,

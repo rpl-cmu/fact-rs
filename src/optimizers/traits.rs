@@ -1,4 +1,7 @@
-use crate::dtype;
+use crate::{
+    core::{Graph, Values},
+    dtype,
+};
 
 /// Error types for optimizers
 #[derive(Debug)]
@@ -12,16 +15,20 @@ pub enum OptError<Input> {
 pub type OptResult<Input> = Result<Input, OptError<Input>>;
 
 // ------------------------- Optimizer Params ------------------------- //
+pub trait OptParams {
+    fn base_params(&self) -> &BaseOptParams;
+}
+
 /// Parameters for the optimizer
 #[derive(Debug, Clone)]
-pub struct OptParams {
+pub struct BaseOptParams {
     pub max_iterations: usize,
     pub error_tol_relative: dtype,
     pub error_tol_absolute: dtype,
     pub error_tol: dtype,
 }
 
-impl Default for OptParams {
+impl Default for BaseOptParams {
     fn default() -> Self {
         Self {
             max_iterations: 100,
@@ -32,38 +39,43 @@ impl Default for OptParams {
     }
 }
 
+impl OptParams for BaseOptParams {
+    fn base_params(&self) -> &BaseOptParams {
+        self
+    }
+}
+
 // ------------------------- Optimizer Observers ------------------------- //
 /// Observer trait for optimization
 ///
 /// This trait is used to observe the optimization process. It is called at each
 /// step of the optimization process.
 pub trait OptObserver {
-    type Input;
-    fn on_step(&self, values: &Self::Input, time: f64);
+    fn on_step(&self, values: &Values, time: f64);
 }
 
 /// Observer collection for optimization
 ///
 /// This struct holds a collection of observers for optimization. It is used to
 /// notify all observers at each step of the optimization process.
-pub struct OptObserverVec<I> {
-    observers: Vec<Box<dyn OptObserver<Input = I>>>,
+pub struct OptObserverVec {
+    observers: Vec<Box<dyn OptObserver>>,
 }
 
-impl<I> OptObserverVec<I> {
-    pub fn add(&mut self, callback: impl OptObserver<Input = I> + 'static) {
+impl OptObserverVec {
+    pub fn add(&mut self, callback: impl OptObserver + 'static) {
         let boxed = Box::new(callback);
         self.observers.push(boxed);
     }
 
-    pub fn notify(&self, values: &I, idx: usize) {
+    pub fn notify(&self, values: &Values, idx: usize) {
         for callback in &self.observers {
             callback.on_step(values, idx as f64);
         }
     }
 }
 
-impl<I> Default for OptObserverVec<I> {
+impl Default for OptObserverVec {
     fn default() -> Self {
         Self {
             observers: Vec::new(),
@@ -77,24 +89,23 @@ impl<I> Default for OptObserverVec<I> {
 /// This trait is used to define the core optimization functions for an
 /// optimizer, specifically a handful of stopping criteria and the main loop.
 pub trait Optimizer {
-    /// Values the optimizer is optimizing
-    type Input;
+    type Params: OptParams;
 
     /// Parameters for the optimizer
-    fn params(&self) -> &OptParams;
+    fn params(&self) -> &BaseOptParams;
 
     /// Perform a single step of optimization
-    fn step(&mut self, values: Self::Input, idx: usize) -> OptResult<Self::Input>;
+    fn step(&mut self, values: Values, idx: usize) -> OptResult<Values>;
 
     /// Compute the error of the current values
-    fn error(&self, values: &Self::Input) -> dtype;
+    fn error(&self, values: &Values) -> dtype;
 
     /// Initialize the optimizer, optional
-    fn init(&mut self, _values: &Self::Input) {}
+    fn init(&mut self, _values: &Values) {}
 
     // TODO: Custom logging based on optimizer
     /// Main optimization call function
-    fn optimize(&mut self, mut values: Self::Input) -> OptResult<Self::Input> {
+    fn optimize(&mut self, mut values: Values) -> OptResult<Values> {
         // Setup up everything from our values
         self.init(&values);
 

@@ -105,11 +105,24 @@ impl Graph {
             sparsity_order,
         }
     }
+
+    pub fn iter(&self) -> std::slice::Iter<Factor> {
+        self.factors.iter()
+    }
 }
 
 impl Debug for Graph {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         GraphFormatter::<DefaultSymbolHandler>::new(self).fmt(f)
+    }
+}
+
+impl IntoIterator for Graph {
+    type Item = Factor;
+    type IntoIter = std::vec::IntoIter<Factor>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.factors.into_iter()
     }
 }
 

@@ -1,12 +1,14 @@
 use faer_ext::IntoNalgebra;
 
-use super::{OptObserverVec, OptParams, OptResult, Optimizer};
+use super::{BaseOptParams, OptObserverVec, OptResult, Optimizer};
 use crate::{
     containers::{Graph, GraphOrder, Values, ValuesOrder},
+    dtype,
     linalg::DiffResult,
-    linear::{CholeskySolver, LinearSolver, LinearValues},
+    linear::{LinearSolver, LinearValues},
 };
 
+// TODO: Build function to create?
 /// The Gauss-Newton optimizer
 ///
 /// Solves $A \Delta \Theta = b$ directly for each optimizer steps. Parameters
@@ -14,25 +16,24 @@ use crate::{
 /// `observers`. Additionally, is generic over the linear solver, but defaults
 /// to [CholeskySolver]. See the [linear](crate::linear) module for more linear
 /// solver options.
-#[derive(Default)]
-pub struct GaussNewton<S: LinearSolver = CholeskySolver> {
+pub struct GaussNewton {
     graph: Graph,
-    solver: S,
+    solver: Box<dyn LinearSolver>,
     /// Basic parameters for the optimizer
-    pub params: OptParams,
+    pub params: BaseOptParams,
     /// Observers for the optimizer
-    pub observers: OptObserverVec<Values>,
+    pub observers: OptObserverVec,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
 }
 
-impl<S: LinearSolver> GaussNewton<S> {
+impl GaussNewton {
     pub fn new(graph: Graph) -> Self {
         Self {
             graph,
-            solver: S::default(),
-            observers: OptObserverVec::default(),
-            params: OptParams::default(),
+            solver: Default::default(),
+            observers: Default::default(),
+            params: Default::default(),
             graph_order: None,
         }
     }
@@ -42,19 +43,19 @@ impl<S: LinearSolver> GaussNewton<S> {
     }
 }
 
-impl<S: LinearSolver> Optimizer for GaussNewton<S> {
-    type Input = Values;
+impl Optimizer for GaussNewton {
+    type Params = BaseOptParams;
 
-    fn error(&self, values: &Values) -> crate::dtype {
+    fn error(&self, values: &Values) -> dtype {
         self.graph.error(values)
     }
 
-    fn params(&self) -> &OptParams {
+    fn params(&self) -> &BaseOptParams {
         &self.params
     }
 
     fn init(&mut self, _values: &Values) {
-        // TODO: Some way to manual specify how to computer ValuesOrder
+        // TODO: Some way to manual specify how to compute ValuesOrder
         // Precompute the sparsity pattern
         self.graph_order = Some(
             self.graph
