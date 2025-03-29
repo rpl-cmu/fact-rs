@@ -221,7 +221,7 @@ pub mod core {
         optimizers::{GaussNewton, LevenMarquardt},
         residuals::{BetweenResidual, PriorResidual},
         robust::{GemanMcClure, Huber, L2},
-        variables::{VectorVar, VectorVar1, VectorVar2, VectorVar3, SE2, SE3, SO2, SO3},
+        variables::{Variable, VectorVar, VectorVar1, VectorVar2, VectorVar3, SE2, SE3, SO2, SO3},
     };
 }
 

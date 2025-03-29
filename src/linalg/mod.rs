@@ -36,6 +36,10 @@ impl MatrixBlock {
         Self { mat, idx }
     }
 
+    pub fn get_idx(&self, idx: usize) -> usize {
+        self.idx[idx]
+    }
+
     pub fn get_block(&self, idx: usize) -> MatrixViewX<'_> {
         let idx_start = self.idx[idx];
         let idx_end = if idx + 1 < self.idx.len() {

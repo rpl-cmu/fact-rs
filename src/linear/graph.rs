@@ -13,9 +13,9 @@ use crate::{
 ///
 /// This is the linear equivalent of [Graph](crate::containers::Graph). Rather
 /// than store nonlinear factors, it stores [LinearFactors](LinearFactor).
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct LinearGraph {
-    factors: Vec<LinearFactor>,
+    pub factors: Vec<LinearFactor>,
 }
 
 impl LinearGraph {
@@ -110,6 +110,19 @@ impl LinearGraph {
             value: r,
             diff: jac,
         }
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<LinearFactor> {
+        self.factors.iter()
+    }
+}
+
+impl IntoIterator for LinearGraph {
+    type Item = LinearFactor;
+    type IntoIter = std::vec::IntoIter<LinearFactor>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.factors.into_iter()
     }
 }
 

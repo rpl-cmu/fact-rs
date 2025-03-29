@@ -11,3 +11,8 @@ pub use values::LinearValues;
 
 mod solvers;
 pub use solvers::{CholeskySolver, LUSolver, LinearSolver, QRSolver};
+
+mod conditional;
+pub use conditional::{compute_conditional, LinearConditional};
+
+mod factor_tree;
