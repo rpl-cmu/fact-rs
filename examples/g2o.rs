@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("File loaded");
 
     // Make optimizer
-    let mut optimizer: GaussNewton = GaussNewton::new(graph);
+    let mut optimizer: GaussNewton = GaussNewton::new_default(graph);
 
     // Connect to rerun if it's been enabled
     if cfg!(feature = "rerun") {

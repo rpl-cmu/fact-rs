@@ -45,10 +45,10 @@ mod gauss_newton;
 pub use gauss_newton::GaussNewton;
 
 mod levenberg_marquardt;
-pub use levenberg_marquardt::LevenMarquardt;
+pub use levenberg_marquardt::{LevenMarquardt, LevenParams};
 
 mod gnc;
-pub use gnc::GraduatedNonConvexity;
+pub use gnc::{GncGemanMcClure, GraduatedNonConvexity, GraduatedNonConvexityParams};
 
 // These aren't tests themselves, but are helpers to test optimizers
 #[cfg(test)]

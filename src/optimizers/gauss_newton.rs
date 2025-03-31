@@ -8,7 +8,6 @@ use crate::{
     linear::{LinearSolver, LinearValues},
 };
 
-// TODO: Build function to create?
 /// The Gauss-Newton optimizer
 ///
 /// Solves $A \Delta \Theta = b$ directly for each optimizer steps. Parameters
@@ -18,33 +17,44 @@ use crate::{
 /// solver options.
 pub struct GaussNewton {
     graph: Graph,
-    solver: Box<dyn LinearSolver>,
+    // TODO: Need to handle this in a better way?
+    pub solver: Box<dyn LinearSolver>,
     /// Basic parameters for the optimizer
-    pub params: BaseOptParams,
+    params: BaseOptParams,
     /// Observers for the optimizer
-    pub observers: OptObserverVec,
+    observers: OptObserverVec,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
 }
 
-impl GaussNewton {
-    pub fn new(graph: Graph) -> Self {
+impl Optimizer for GaussNewton {
+    type Params = BaseOptParams;
+
+    fn new(params: Self::Params, graph: Graph) -> Self {
         Self {
             graph,
             solver: Default::default(),
-            observers: Default::default(),
-            params: Default::default(),
+            observers: OptObserverVec::default(),
+            params,
             graph_order: None,
         }
     }
 
-    pub fn graph(&self) -> &Graph {
+    fn observers(&self) -> &OptObserverVec {
+        &self.observers
+    }
+
+    fn observers_mut(&mut self) -> &mut OptObserverVec {
+        &mut self.observers
+    }
+
+    fn graph(&self) -> &Graph {
         &self.graph
     }
-}
 
-impl Optimizer for GaussNewton {
-    type Params = BaseOptParams;
+    fn graph_mut(&mut self) -> &mut Graph {
+        &mut self.graph
+    }
 
     fn error(&self, values: &Values) -> dtype {
         self.graph.error(values)
@@ -63,7 +73,7 @@ impl Optimizer for GaussNewton {
         );
     }
 
-    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<Values> {
+    fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<Values> {
         // Solve the linear system
         let linear_graph = self.graph.linearize(&values);
         let DiffResult { value: r, diff: j } =
@@ -88,8 +98,6 @@ impl Optimizer for GaussNewton {
             delta,
         );
         values.oplus_mut(&dx);
-
-        self.observers.notify(&values, idx);
 
         Ok(values)
     }

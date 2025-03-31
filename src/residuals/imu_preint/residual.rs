@@ -403,7 +403,7 @@ mod test {
         values.insert(B(1), ImuBias::identity());
 
         // Optimize
-        let mut opt: GaussNewton = GaussNewton::new(graph);
+        let mut opt: GaussNewton = GaussNewton::new_default(graph);
         let results = opt.optimize(values).expect("Optimization failed");
 
         // Check results

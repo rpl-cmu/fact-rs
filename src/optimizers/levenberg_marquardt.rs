@@ -11,6 +11,7 @@ use crate::{
     linear::{LinearSolver, LinearValues},
 };
 
+#[derive(Clone, Debug)]
 pub struct LevenParams {
     pub lambda_min: dtype,
     pub lambda_max: dtype,
@@ -49,33 +50,43 @@ pub struct LevenMarquardt {
     graph: Graph,
     pub solver: Box<dyn LinearSolver>,
     /// Levenberg-Marquardt specific parameters
-    pub params: LevenParams,
+    params: LevenParams,
     /// Observers for the optimizer
-    pub observers: OptObserverVec,
+    observers: OptObserverVec,
     lambda: dtype,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
 }
 
-impl LevenMarquardt {
-    pub fn new(graph: Graph) -> Self {
+impl Optimizer for LevenMarquardt {
+    type Params = LevenParams;
+
+    fn new(params: Self::Params, graph: Graph) -> Self {
         Self {
             graph,
             solver: Default::default(),
-            params: Default::default(),
             observers: OptObserverVec::default(),
+            params,
             lambda: 1e-5,
             graph_order: None,
         }
     }
 
-    pub fn graph(&self) -> &Graph {
+    fn observers(&self) -> &OptObserverVec {
+        &self.observers
+    }
+
+    fn observers_mut(&mut self) -> &mut OptObserverVec {
+        &mut self.observers
+    }
+
+    fn graph(&self) -> &Graph {
         &self.graph
     }
-}
 
-impl Optimizer for LevenMarquardt {
-    type Params = LevenParams;
+    fn graph_mut(&mut self) -> &mut Graph {
+        &mut self.graph
+    }
 
     fn params(&self) -> &BaseOptParams {
         &self.params.base

@@ -121,7 +121,7 @@ fn main() {
     // let f = fac![GpsResidual::new(0.0, 0.0), Y(0), 0.1 as std];
 
     // optimize
-    let mut opt: GaussNewton = GaussNewton::new(graph);
+    let mut opt: GaussNewton = GaussNewton::new_default(graph);
     let result = opt.optimize(values).expect("Optimization failed");
 
     println!("Final Result: {:#?}", result);

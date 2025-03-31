@@ -5,17 +5,17 @@ use crate::{
 
 /// Error types for optimizers
 #[derive(Debug)]
-pub enum OptError<Input> {
-    MaxIterations(Input),
+pub enum OptError {
+    MaxIterations(Values),
     InvalidSystem,
     FailedToStep,
 }
 
 /// Result type for optimizers
-pub type OptResult<Input> = Result<Input, OptError<Input>>;
+pub type OptResult<T> = Result<T, OptError>;
 
 // ------------------------- Optimizer Params ------------------------- //
-pub trait OptParams {
+pub trait OptParams: Default + Clone {
     fn base_params(&self) -> &BaseOptParams;
 }
 
@@ -58,6 +58,7 @@ pub trait OptObserver {
 ///
 /// This struct holds a collection of observers for optimization. It is used to
 /// notify all observers at each step of the optimization process.
+#[derive(Default)]
 pub struct OptObserverVec {
     observers: Vec<Box<dyn OptObserver>>,
 }
@@ -75,14 +76,6 @@ impl OptObserverVec {
     }
 }
 
-impl Default for OptObserverVec {
-    fn default() -> Self {
-        Self {
-            observers: Vec::new(),
-        }
-    }
-}
-
 // ------------------------- Actual Trait Impl ------------------------- //
 /// Trait for optimization algorithms
 ///
@@ -90,6 +83,26 @@ impl Default for OptObserverVec {
 /// optimizer, specifically a handful of stopping criteria and the main loop.
 pub trait Optimizer {
     type Params: OptParams;
+
+    // ------------------------- Required ------------------------- //
+    /// Create a new optimizer
+    fn new(params: Self::Params, graph: Graph) -> Self;
+
+    /// Observers
+    fn observers(&self) -> &OptObserverVec;
+
+    /// Observers
+    fn observers_mut(&mut self) -> &mut OptObserverVec;
+
+    /// The graph we are optimizing
+    fn graph(&self) -> &Graph;
+
+    /// The graph we are optimizing
+    ///
+    /// This is mutable to allow for modifying the graph during optimization.
+    /// BE CAREFUL! In most optimizer, the overall structure of the graph should
+    /// remain the same between optimization steps.
+    fn graph_mut(&mut self) -> &mut Graph;
 
     /// Parameters for the optimizer
     fn params(&self) -> &BaseOptParams;
@@ -103,6 +116,7 @@ pub trait Optimizer {
     /// Initialize the optimizer, optional
     fn init(&mut self, _values: &Values) {}
 
+    // ------------------------- Derived from the above ------------------------- //
     // TODO: Custom logging based on optimizer
     /// Main optimization call function
     fn optimize(&mut self, mut values: Values) -> OptResult<Values> {
@@ -143,6 +157,7 @@ pub trait Optimizer {
         for i in 1..self.params().max_iterations + 1 {
             error_old = error_new;
             values = self.step(values, i)?;
+            self.observers().notify(&values, i);
 
             // Evaluate error again to see how we did
             error_new = self.error(&values);
@@ -174,5 +189,17 @@ pub trait Optimizer {
         }
 
         Err(OptError::MaxIterations(values))
+    }
+
+    fn add_observer(&mut self, observer: impl OptObserver + 'static) {
+        self.observers_mut().add(observer);
+    }
+
+    /// Create a new optimizer with default params
+    fn new_default(graph: Graph) -> Self
+    where
+        Self: Sized,
+    {
+        Self::new(Self::Params::default(), graph)
     }
 }

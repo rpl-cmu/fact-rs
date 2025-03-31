@@ -62,7 +62,7 @@ pub struct Factor {
     keys: Vec<Key>,
     residual: Box<dyn Residual>,
     noise: Box<dyn NoiseModel>,
-    robust: Box<dyn RobustCost>,
+    pub(crate) robust: Box<dyn RobustCost>,
 }
 
 impl Factor {

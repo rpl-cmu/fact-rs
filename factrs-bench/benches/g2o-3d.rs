@@ -7,7 +7,7 @@ use factrs::{core::GaussNewton, traits::Optimizer, utils::load_g20};
 fn factrs(bencher: Bencher, file: &str) {
     let (graph, init) = load_g20(&format!("{}{}", DATA_DIR, file));
     bencher.bench(|| {
-        let mut opt: GaussNewton = GaussNewton::new(graph.clone());
+        let mut opt: GaussNewton = GaussNewton::new_default(graph.clone());
         let mut results = opt.optimize(init.clone());
         black_box(&mut results);
     });
