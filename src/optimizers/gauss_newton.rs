@@ -64,16 +64,18 @@ impl Optimizer for GaussNewton {
         &self.params
     }
 
-    fn init(&mut self, _values: &Values) {
+    fn init(&mut self, _values: &Values) -> Vec<&'static str> {
         // TODO: Some way to manual specify how to compute ValuesOrder
         // Precompute the sparsity pattern
         self.graph_order = Some(
             self.graph
                 .sparsity_pattern(ValuesOrder::from_values(_values)),
         );
+
+        Vec::new()
     }
 
-    fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<Values> {
+    fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<(Values, String)> {
         // Solve the linear system
         let linear_graph = self.graph.linearize(&values);
         let DiffResult { value: r, diff: j } =
@@ -99,7 +101,7 @@ impl Optimizer for GaussNewton {
         );
         values.oplus_mut(&dx);
 
-        Ok(values)
+        Ok((values, String::new()))
     }
 }
 

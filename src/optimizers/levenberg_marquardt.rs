@@ -23,7 +23,7 @@ pub struct LevenParams {
 impl Default for LevenParams {
     fn default() -> Self {
         Self {
-            lambda_min: 0.0,
+            lambda_min: 1e-10,
             lambda_max: 1e5,
             lambda_factor: 10.0,
             diagonal_damping: true,
@@ -96,22 +96,24 @@ impl Optimizer for LevenMarquardt {
         self.graph.error(values)
     }
 
-    fn init(&mut self, values: &Values) {
+    fn init(&mut self, values: &Values) -> Vec<&'static str> {
         // TODO: Some way to manual specify how to computer ValuesOrder
         // Precompute the sparsity pattern
         self.graph_order = Some(
             self.graph
                 .sparsity_pattern(ValuesOrder::from_values(values)),
         );
+
+        vec!["   Lambda   "]
     }
 
     // TODO: Some form of logging of the lambda value
     // TODO: More sophisticated stopping criteria based on magnitude of the gradient
-    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<Values> {
+    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<(Values, String)> {
         // Make an ordering
         let order = ValuesOrder::from_values(&values);
 
-        // Solve the linear system
+        // Form the linear system
         let linear_graph = self.graph.linearize(&values);
         let DiffResult { value: r, diff: j } =
             linear_graph.residual_jacobian(self.graph_order.as_ref().expect("Missing graph order"));
@@ -190,7 +192,7 @@ impl Optimizer for LevenMarquardt {
 
         self.observers.notify(&values, idx);
 
-        Ok(values)
+        Ok((values, format!("{:^12.4e} |", self.lambda)))
     }
 }
 

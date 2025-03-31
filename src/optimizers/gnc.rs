@@ -14,17 +14,28 @@ use crate::{
 };
 
 // ------------------------- Convexable Kernels ------------------------- //
-// Essentially this'll have a global mu that is shared, but each factor
-// will have its own threshold.
+/// A trait for kernels that can be iteratively "convexified"
+///
+/// This trait is used to define kernels that can be used in the Graduated
+/// Non-Convexity (GNC) algorithm. Specifically throughout, `d2` is the error
+/// squared and `thresh` is the inlier threshold, usually set to the 95th
+/// percentile in [GncParams]
 pub trait ConvexableKernel: RobustCost + Clone {
-    // TODO: Do we really need a different mu for each factor?
+    /// How to initialize the mu parameter
+    ///
+    /// This will be done once at the start of the optimization, and will likely
+    /// involve some form of maximum.
     fn init_mu(d2: &[dtype], thresh: &[dtype]) -> dtype;
 
+    /// Create a new kernel with the given mu and threshold
+    ///
+    /// This threshold is often proportional to `c` parameter of the kernel.
     fn new(mu: dtype, thresh: dtype) -> Self;
 
-    // TODO: We're computing this for each factor, when it likely should be
-    fn step_mu(&mut self);
+    /// Step the mu parameter
+    fn step_mu(&mut self, step_size: dtype);
 
+    /// Convert the kernel to a boxed trait object
     fn upcast(&self) -> Box<dyn RobustCost>
     where
         Self: Sized + 'static,
@@ -32,9 +43,16 @@ pub trait ConvexableKernel: RobustCost + Clone {
         dyn_clone::clone_box(self)
     }
 
+    /// Get the current mu parameter
     fn mu(&self) -> dtype;
 }
 
+/// A Geman-McClure kernel
+///
+/// Given by,
+/// $$
+/// \frac{\mu c^2 x^2}{\mu c^2 + x^2}
+/// $$
 #[derive(Clone)]
 pub struct GncGemanMcClure {
     mu: dtype,
@@ -58,7 +76,7 @@ impl RobustCost for GncGemanMcClure {
 
 impl ConvexableKernel for GncGemanMcClure {
     fn init_mu(d2: &[dtype], thresh: &[dtype]) -> dtype {
-        0.5 * d2
+        2.0 * d2
             .iter()
             .zip(thresh)
             .fold(0.0, |mu, (d, t)| dtype::max(mu, d / t))
@@ -68,8 +86,8 @@ impl ConvexableKernel for GncGemanMcClure {
         Self { mu, c2: thresh }
     }
 
-    fn step_mu(&mut self) {
-        self.mu = dtype::max(1.0, self.mu / 1.4);
+    fn step_mu(&mut self, step_size: dtype) {
+        self.mu = dtype::max(1.0, self.mu / step_size);
     }
 
     fn mu(&self) -> dtype {
@@ -90,30 +108,36 @@ impl Debug for GncGemanMcClure {
 
 // ------------------------- GNC ------------------------- //
 #[derive(Debug)]
-pub struct GraduatedNonConvexityParams<O: Optimizer = LevenMarquardt>
+pub struct GncParams<O: Optimizer = LevenMarquardt>
 where
     O::Params: Clone,
 {
     base: O::Params,
+    mu_step_size: dtype,
+    percentile: dtype,
 }
 
-impl<O: Optimizer> Clone for GraduatedNonConvexityParams<O> {
+impl<O: Optimizer> Clone for GncParams<O> {
     fn clone(&self) -> Self {
         Self {
             base: self.base.clone(),
+            mu_step_size: self.mu_step_size,
+            percentile: self.percentile,
         }
     }
 }
 
-impl<O: Optimizer> Default for GraduatedNonConvexityParams<O> {
+impl<O: Optimizer> Default for GncParams<O> {
     fn default() -> Self {
         Self {
             base: O::Params::default(),
+            mu_step_size: 1.4,
+            percentile: 0.95,
         }
     }
 }
 
-impl<O: Optimizer> OptParams for GraduatedNonConvexityParams<O> {
+impl<O: Optimizer> OptParams for GncParams<O> {
     fn base_params(&self) -> &BaseOptParams {
         self.base.base_params()
     }
@@ -123,13 +147,13 @@ pub struct GraduatedNonConvexity<K = GncGemanMcClure, O: Optimizer = LevenMarqua
     // Original graph
     kernels: Vec<K>,
     /// Basic parameters for the optimizer
-    params: GraduatedNonConvexityParams<O>,
+    params: GncParams<O>,
     /// Base optimizer
     optimizer: O,
 }
 
 impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConvexity<K, O> {
-    type Params = GraduatedNonConvexityParams<O>;
+    type Params = GncParams<O>;
 
     fn new(params: Self::Params, graph: Graph) -> Self {
         Self {
@@ -163,14 +187,11 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
         self.optimizer.error(values)
     }
 
-    fn init(&mut self, values: &Values) {
-        self.optimizer.init(values);
+    fn init(&mut self, values: &Values) -> Vec<&'static str> {
+        let mut base_append = self.optimizer.init(values);
+        base_append.push("     Mu     ");
 
         // Initialize mu
-        // TODO: Need chi2inv(0.95, dim) here to get inlier thresholds
-        // TODO: Do I need a 1/2 like in gtsam?
-        // - I think I do since our error is also prefixed by 1/2
-        // c2 = 0.5 * chi2inv(0.95, dim);
         let e: Vec<_> = self.graph().iter().map(|f| f.error(values)).collect();
         let thresholds: Vec<_> = self
             .graph()
@@ -178,7 +199,7 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
             .map(|f| {
                 ChiSquared::new(f.dim_out() as f64)
                     .expect("")
-                    .inverse_cdf(0.95)
+                    .inverse_cdf(self.params.percentile)
             })
             .collect();
 
@@ -186,19 +207,18 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
 
         // Initialize the kernels
         self.kernels = thresholds.iter().map(|t| K::new(mu, *t)).collect();
-        println!("e = {:?}", e);
-        println!("thresholds = {:?}", thresholds);
-        println!("mu = {:?}", mu);
-        println!("kernels = {:#?}", self.kernels);
+
+        base_append
     }
 
-    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<Values> {
+    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<(Values, String)> {
         // Step the kernels
-        self.kernels.iter_mut().for_each(|k| k.step_mu());
+        self.kernels
+            .iter_mut()
+            .for_each(|k| k.step_mu(self.params.mu_step_size));
         // TODO: Do this to appease the borrow checker, but it's not great
         let kernels = self.kernels.clone();
-
-        println!("mu = {:?}", kernels[0].mu());
+        let mu = kernels[0].mu();
 
         // Replace them in the graph
         self.graph_mut()
@@ -207,6 +227,9 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
             .for_each(|(f, k)| f.robust = k.upcast());
 
         // Optimize and return
-        self.optimizer.step(values, idx)
+        let (values, mut info) = self.optimizer.step(values, idx)?;
+        info.push_str(&format!(" {:^12.4e} |", mu));
+
+        Ok((values, info))
     }
 }

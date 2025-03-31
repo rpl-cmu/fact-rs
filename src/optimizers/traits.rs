@@ -108,20 +108,24 @@ pub trait Optimizer {
     fn params(&self) -> &BaseOptParams;
 
     /// Perform a single step of optimization
-    fn step(&mut self, values: Values, idx: usize) -> OptResult<Values>;
+    fn step(&mut self, values: Values, idx: usize) -> OptResult<(Values, String)>;
 
     /// Compute the error of the current values
     fn error(&self, values: &Values) -> dtype;
 
     /// Initialize the optimizer, optional
-    fn init(&mut self, _values: &Values) {}
+    ///
+    /// Returns a vector of strings to append to a column when logging
+    fn init(&mut self, _values: &Values) -> Vec<&'static str> {
+        Vec::new()
+    }
 
     // ------------------------- Derived from the above ------------------------- //
     // TODO: Custom logging based on optimizer
     /// Main optimization call function
     fn optimize(&mut self, mut values: Values) -> OptResult<Values> {
         // Setup up everything from our values
-        self.init(&values);
+        let append = self.init(&values);
 
         // Check if we need to optimize at all
         let mut error_old = self.error(&values);
@@ -130,33 +134,49 @@ pub trait Optimizer {
             return Ok(values);
         }
 
+        let extra = if append.is_empty() { "" } else { " |" };
+
         log::info!(
-            "{:^5} | {:^12} | {:^12} | {:^12}",
+            "{:^5} | {:^12} | {:^12} | {:^12} | {}",
             "Iter",
             "Error",
             "ErrorAbs",
-            "ErrorRel"
+            "ErrorRel",
+            append.join(" | ") + extra,
         );
         log::info!(
-            "{:^5} | {:^12} | {:^12} | {:^12}",
+            "{:^5} | {:^12} | {:^12} | {:^12} | {}",
             "-----",
             "------------",
             "------------",
-            "------------"
+            "------------",
+            append
+                .iter()
+                .map(|s| "-".repeat(s.len()))
+                .collect::<Vec<_>>()
+                .join(" | ")
+                + extra
         );
         log::info!(
-            "{:^5} | {:^12.4e} | {:^12} | {:^12}",
+            "{:^5} | {:^12.4e} | {:^12} | {:^12} | {}",
             0,
             error_old,
             "-",
-            "-"
+            "-",
+            append
+                .iter()
+                .map(|s| format!("{:^width$}", "-", width = s.len()))
+                .collect::<Vec<_>>()
+                .join(" | ")
+                + extra
         );
 
         // Begin iterations
         let mut error_new = error_old;
         for i in 1..self.params().max_iterations + 1 {
             error_old = error_new;
-            values = self.step(values, i)?;
+            let (temp, info) = self.step(values, i)?;
+            values = temp;
             self.observers().notify(&values, i);
 
             // Evaluate error again to see how we did
@@ -166,11 +186,12 @@ pub trait Optimizer {
             let error_decrease_rel = error_decrease_abs / error_old;
 
             log::info!(
-                "{:^5} | {:^12.4e} | {:^12.4e} | {:^12.4e}",
+                "{:^5} | {:^12.4e} | {:^12.4e} | {:^12.4e} | {}",
                 i,
                 error_new,
                 error_decrease_abs,
-                error_decrease_rel
+                error_decrease_rel,
+                info
             );
 
             // Check if we need to stop
