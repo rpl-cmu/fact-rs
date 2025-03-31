@@ -143,6 +143,10 @@ impl<O: Optimizer> OptParams for GncParams<O> {
     }
 }
 
+// TODO: This is supposed to iterate entirely over the inner function, but it
+// seems to be failing for me
+// TODO: Probably need to specify odometry as not an outlier
+
 pub struct GraduatedNonConvexity<K = GncGemanMcClure, O: Optimizer = LevenMarquardt> {
     // Original graph
     kernels: Vec<K>,

@@ -279,8 +279,6 @@ def writeDataset(
 
     # now create the desired number of additional outlier edges
     for i in range(outliers):
-        elem = oldStr.split()
-
         # determine random indices for the two vertices that are connected by an outlier edge
         v1 = 0
         v2 = 0
@@ -304,7 +302,7 @@ def writeDataset(
             x2 = random.gauss(0, 0.3)
             x3 = random.gauss(0, 10 * pi / 180.0)
 
-        if mode == 3:
+        elif mode == 3:
             x1 = random.gauss(0, 0.3)
             x2 = random.gauss(0, 0.3)
             x3 = random.gauss(0, 0.3)
@@ -314,6 +312,9 @@ def writeDataset(
             pitch = random.gauss(0, sigma)
             yaw = random.gauss(0, sigma)
             (q0, q1, q2, q3) = euler_to_quat(yaw, pitch, roll)
+
+        else:
+            raise ValueError("Invalid mode. It must be either 2 or 3 but was", mode)
 
         if perfectMatch:
             x1 = x2 = x3 = 0
