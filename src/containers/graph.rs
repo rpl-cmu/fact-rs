@@ -109,7 +109,7 @@ impl Graph {
     pub fn iter(&self) -> std::slice::Iter<Factor> {
         self.factors.iter()
     }
-
+  
     pub fn iter_mut(&mut self) -> std::slice::IterMut<Factor> {
         self.factors.iter_mut()
     }
@@ -135,7 +135,7 @@ impl IntoIterator for Graph {
 /// Specifically, this can be used if custom symbols are desired. See
 /// [tests/custom_key](https://github.com/rpl-cmu/factrs/blob/dev/tests/custom_key.rs) for examples.
 pub struct GraphFormatter<'g, KF> {
-    graph: &'g Graph,
+    pub graph: &'g Graph,
     kf: PhantomData<KF>,
 }
 
