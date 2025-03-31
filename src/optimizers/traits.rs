@@ -82,11 +82,15 @@ impl OptObserverVec {
 /// This trait is used to define the core optimization functions for an
 /// optimizer, specifically a handful of stopping criteria and the main loop.
 pub trait Optimizer {
-    type Params: OptParams;
+    type Params: OptParams
+    where
+        Self: Sized;
 
     // ------------------------- Required ------------------------- //
     /// Create a new optimizer
-    fn new(params: Self::Params, graph: Graph) -> Self;
+    fn new(params: Self::Params, graph: Graph) -> Self
+    where
+        Self: Sized;
 
     /// Observers
     fn observers(&self) -> &OptObserverVec;
@@ -212,7 +216,10 @@ pub trait Optimizer {
         Err(OptError::MaxIterations(values))
     }
 
-    fn add_observer(&mut self, observer: impl OptObserver + 'static) {
+    fn add_observer(&mut self, observer: impl OptObserver + 'static)
+    where
+        Self: Sized,
+    {
         self.observers_mut().add(observer);
     }
 

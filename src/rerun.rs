@@ -404,8 +404,6 @@ where
     R: AsComponents,
     for<'a> R: FromIterator<&'a V>,
 {
-    type Input = Values;
-
     fn on_step(&self, values: &Values, idx: f64) {
         self.rec.set_time_seconds("stable_time", idx);
         let sol: R = values.filter::<V>().collect();

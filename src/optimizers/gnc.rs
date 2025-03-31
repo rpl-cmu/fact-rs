@@ -191,7 +191,7 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
         let mut base_append = self.optimizer.init(values);
         base_append.push("     Mu     ");
 
-        // Initialize mu
+        // Gather error and thresholds
         let e: Vec<_> = self.graph().iter().map(|f| f.error(values)).collect();
         let thresholds: Vec<_> = self
             .graph()
@@ -203,6 +203,7 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
             })
             .collect();
 
+        // Initialize the mu parameter
         let mu = K::init_mu(&e, &thresholds);
 
         // Initialize the kernels
@@ -229,6 +230,9 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
         // Optimize and return
         let (values, mut info) = self.optimizer.step(values, idx)?;
         info.push_str(&format!(" {:^12.4e} |", mu));
+        // let values: Values = self.optimizer.optimize(values).unwrap();
+        // let info = format!(" {:^12.4e} |", mu);
+        // println!("Finished step {}: {}", idx, info);
 
         Ok((values, info))
     }
