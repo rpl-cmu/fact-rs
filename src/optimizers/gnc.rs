@@ -16,6 +16,10 @@ use crate::{
 };
 
 // ------------------------- Convexable Kernels ------------------------- //
+
+// TODO: Instead of upcasting, would it be better if this just outputted a dyn
+// RobustCost?
+
 /// A trait for kernels that can be iteratively "convexified"
 ///
 /// This trait is used to define kernels that can be used in the Graduated
@@ -71,8 +75,7 @@ impl RobustCost for GncGemanMcClure {
 
     fn weight(&self, d2: dtype) -> dtype {
         let p = self.mu * self.c2;
-        let denom = p + d2;
-        let frac = p / denom;
+        let frac = p / (p + d2);
         frac * frac
     }
 }
@@ -149,10 +152,6 @@ impl<O: Optimizer> OptParams for GncParams<O> {
     }
 }
 
-// TODO: This is supposed to iterate entirely over the inner function, but it
-// seems to be failing for me
-// TODO: Probably need to specify odometry as not an outlier
-
 pub struct GraduatedNonConvexity<K = GncGemanMcClure, O: Optimizer = LevenMarquardt> {
     /// Holds the kernels
     ///
@@ -206,13 +205,14 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
     fn init(&mut self, values: &Values) -> Vec<&'static str> {
         // Gather error and thresholds
         let e: Vec<_> = self.graph().iter().map(|f| f.error(values)).collect();
+        #[allow(clippy::unnecessary_cast)]
         let thresholds: Vec<_> = self
             .graph()
             .iter()
             .map(|f| {
                 ChiSquared::new(f.dim_out() as f64)
                     .expect("")
-                    .inverse_cdf(self.params.percentile)
+                    .inverse_cdf(self.params.percentile as f64) as dtype
             })
             .collect();
 
@@ -349,6 +349,8 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
             // Evaluate error again to see how we did
             error_new = self.error(&values);
 
+            // NOTE: This is the difference, we need to be ok with increases in error due to
+            // changing the kernels
             let error_decrease_abs = dtype::abs(error_old - error_new);
             let error_decrease_rel = error_decrease_abs / error_old;
 
