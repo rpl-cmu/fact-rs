@@ -3,10 +3,12 @@ use std::fmt::Debug;
 
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
-use super::{BaseOptParams, LevenMarquardt, OptObserverVec, OptParams, OptResult, Optimizer};
+use super::{
+    BaseOptParams, LevenMarquardt, OptError, OptObserverVec, OptParams, OptResult, Optimizer,
+};
 use crate::{
     containers::{GraphOrder, ValuesOrder},
-    core::{Graph, Values},
+    core::{Graph, Values, L2},
     dtype,
     linalg::VectorViewX,
     linear::{CholeskySolver, LinearSolver},
@@ -54,6 +56,7 @@ pub trait ConvexableKernel: RobustCost + Clone {
 /// \frac{\mu c^2 x^2}{\mu c^2 + x^2}
 /// $$
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GncGemanMcClure {
     mu: dtype,
     c2: dtype,
@@ -112,15 +115,17 @@ pub struct GncParams<O: Optimizer = LevenMarquardt>
 where
     O::Params: Clone,
 {
-    base: O::Params,
-    mu_step_size: dtype,
-    percentile: dtype,
+    pub base: BaseOptParams,
+    pub inner: O::Params,
+    pub mu_step_size: dtype,
+    pub percentile: dtype,
 }
 
 impl<O: Optimizer> Clone for GncParams<O> {
     fn clone(&self) -> Self {
         Self {
             base: self.base.clone(),
+            inner: self.inner.clone(),
             mu_step_size: self.mu_step_size,
             percentile: self.percentile,
         }
@@ -130,7 +135,8 @@ impl<O: Optimizer> Clone for GncParams<O> {
 impl<O: Optimizer> Default for GncParams<O> {
     fn default() -> Self {
         Self {
-            base: O::Params::default(),
+            base: Default::default(),
+            inner: Default::default(),
             mu_step_size: 1.4,
             percentile: 0.95,
         }
@@ -148,12 +154,17 @@ impl<O: Optimizer> OptParams for GncParams<O> {
 // TODO: Probably need to specify odometry as not an outlier
 
 pub struct GraduatedNonConvexity<K = GncGemanMcClure, O: Optimizer = LevenMarquardt> {
-    // Original graph
-    kernels: Vec<K>,
+    /// Holds the kernels
+    ///
+    ///  These will be iteratively updated as the optimization progresses. Any
+    /// that are None are known inliers and their kernels won't be changed.
+    kernels: Vec<Option<K>>,
     /// Basic parameters for the optimizer
     params: GncParams<O>,
+    /// Graph to optimize
+    graph: Graph,
     /// Base optimizer
-    optimizer: O,
+    observers: OptObserverVec,
 }
 
 impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConvexity<K, O> {
@@ -161,40 +172,38 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
 
     fn new(params: Self::Params, graph: Graph) -> Self {
         Self {
-            optimizer: O::new(params.base.clone(), graph.clone()),
-            kernels: vec![],
+            observers: OptObserverVec::default(),
+            kernels: Vec::new(),
+            graph,
             params,
         }
     }
 
     fn observers(&self) -> &OptObserverVec {
-        self.optimizer.observers()
+        &self.observers
     }
 
     fn observers_mut(&mut self) -> &mut OptObserverVec {
-        self.optimizer.observers_mut()
+        &mut self.observers
     }
 
     fn graph(&self) -> &Graph {
-        self.optimizer.graph()
+        &self.graph
     }
 
     fn graph_mut(&mut self) -> &mut Graph {
-        self.optimizer.graph_mut()
+        &mut self.graph
     }
 
     fn params(&self) -> &BaseOptParams {
-        self.params.base.base_params()
+        &self.params.base
     }
 
     fn error(&self, values: &Values) -> dtype {
-        self.optimizer.error(values)
+        self.graph.error(values)
     }
 
     fn init(&mut self, values: &Values) -> Vec<&'static str> {
-        let mut base_append = self.optimizer.init(values);
-        base_append.push("     Mu     ");
-
         // Gather error and thresholds
         let e: Vec<_> = self.graph().iter().map(|f| f.error(values)).collect();
         let thresholds: Vec<_> = self
@@ -210,34 +219,163 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
         // Initialize the mu parameter
         let mu = K::init_mu(&e, &thresholds);
 
-        // Initialize the kernels
-        self.kernels = thresholds.iter().map(|t| K::new(mu, *t)).collect();
+        // Infer inliers from between factors with consecutive keys
+        let is_odometry = self
+            .graph()
+            .iter()
+            .enumerate()
+            .map(|(i, f)| f.keys().len() == 2 && f.keys()[0].0 + 1 == f.keys()[1].0)
+            .collect::<Vec<_>>();
 
-        base_append
+        if is_odometry.iter().all(|&x| x) {
+            log::warn!("All factors are odometry, no kernels will be created");
+        }
+
+        // Initialize the kernels
+        self.kernels = thresholds
+            .iter()
+            .zip(is_odometry)
+            .map(|(t, inlier)| if (inlier) { None } else { Some(K::new(mu, *t)) })
+            .collect();
+
+        vec!["     Mu     "]
     }
 
     fn step(&mut self, mut values: Values, idx: usize) -> OptResult<(Values, String)> {
         // Step the kernels
         self.kernels
             .iter_mut()
+            .filter_map(|k| k.as_mut())
             .for_each(|k| k.step_mu(self.params.mu_step_size));
         // TODO: Do this to appease the borrow checker, but it's not great
         let kernels = self.kernels.clone();
-        let mu = kernels[0].mu();
 
-        // Replace them in the graph
+        // Get the most recent mu
+        let mut mu = 0.0;
+        for (i, k) in kernels.iter().enumerate() {
+            if let Some(k) = k {
+                mu = k.mu();
+            }
+        }
+
+        // Replace the robust kernels in the graph
+        #[allow(clippy::unwrap_used)]
         self.graph_mut()
             .iter_mut()
             .zip(kernels)
-            .for_each(|(f, k)| f.robust = k.upcast());
+            .filter(|(f, k)| k.is_some())
+            .for_each(|(f, k)| f.robust = k.unwrap().upcast());
 
         // Optimize and return
-        let (values, mut info) = self.optimizer.step(values, idx)?;
+        let error = self.error(&values);
+        let mut info = String::new();
+        // let inner_params = self.params.inner.base_params();
+
+        let mut opt = O::new(self.params.inner.clone(), self.graph().clone());
+        let result = opt.optimize(values.clone());
+        match result {
+            Ok(v) => values = v,
+            Err(OptError::MaxIterations(v)) => {
+                values = v;
+            }
+            Err(e) => {
+                log::warn!("Inner optimizer failed");
+                return Err(e);
+            }
+        }
         info.push_str(&format!(" {:^12.4e} |", mu));
-        // let values: Values = self.optimizer.optimize(values).unwrap();
-        // let info = format!(" {:^12.4e} |", mu);
-        // println!("Finished step {}: {}", idx, info);
 
         Ok((values, info))
+    }
+
+    // Have to re-implement this because we need to do some extra stuff
+    // Namely, to allow for increases to the error
+    fn optimize(&mut self, mut values: Values) -> OptResult<Values> {
+        // Setup up everything from our values
+        let append = self.init(&values);
+
+        // Check if we need to optimize at all
+        let mut error_old = self.error(&values);
+        if error_old <= self.params().error_tol {
+            log::info!("Error is already below tolerance, skipping optimization");
+            return Ok(values);
+        }
+
+        let extra = if append.is_empty() { "" } else { " |" };
+
+        log::info!(
+            "{:^5} | {:^12} | {:^12} | {:^12} | {}",
+            "Iter",
+            "Error",
+            "ErrorAbs",
+            "ErrorRel",
+            append.join(" | ") + extra,
+        );
+        log::info!(
+            "{:^5} | {:^12} | {:^12} | {:^12} | {}",
+            "-----",
+            "------------",
+            "------------",
+            "------------",
+            append
+                .iter()
+                .map(|s| "-".repeat(s.len()))
+                .collect::<Vec<_>>()
+                .join(" | ")
+                + extra
+        );
+        log::info!(
+            "{:^5} | {:^12.4e} | {:^12} | {:^12} | {}",
+            0,
+            error_old,
+            "-",
+            "-",
+            append
+                .iter()
+                .map(|s| format!("{:^width$}", "-", width = s.len()))
+                .collect::<Vec<_>>()
+                .join(" | ")
+                + extra
+        );
+
+        // Begin iterations
+        let mut error_new = error_old;
+        for i in 1..self.params().max_iterations + 1 {
+            error_old = error_new;
+            let (temp, info) = self.step(values, i)?;
+            values = temp;
+            self.observers().notify(&values, i);
+
+            // Evaluate error again to see how we did
+            error_new = self.error(&values);
+
+            let error_decrease_abs = dtype::abs(error_old - error_new);
+            let error_decrease_rel = error_decrease_abs / error_old;
+
+            log::info!(
+                "{:^5} | {:^12.4e} | {:^12.4e} | {:^12.4e} | {}",
+                i,
+                error_new,
+                error_decrease_abs,
+                error_decrease_rel,
+                info
+            );
+
+            // Check if we need to stop
+            if error_new <= self.params().error_tol {
+                log::info!("Error is below tolerance, stopping optimization");
+                return Ok(values);
+            }
+            if error_decrease_abs <= self.params().error_tol_absolute {
+                log::info!("Error decrease is below absolute tolerance, stopping optimization");
+                return Ok(values);
+            }
+            if error_decrease_rel <= self.params().error_tol_relative {
+                log::info!("Error decrease is below relative tolerance, stopping optimization");
+                return Ok(values);
+            }
+        }
+
+        Err(OptError::MaxIterations(values))
     }
 }

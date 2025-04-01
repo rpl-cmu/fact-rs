@@ -48,7 +48,7 @@ mod levenberg_marquardt;
 pub use levenberg_marquardt::{LevenMarquardt, LevenParams};
 
 mod gnc;
-pub use gnc::{GncGemanMcClure, GraduatedNonConvexity};
+pub use gnc::{GncGemanMcClure, GncParams, GraduatedNonConvexity};
 
 // These aren't tests themselves, but are helpers to test optimizers
 #[cfg(test)]

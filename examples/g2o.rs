@@ -6,7 +6,7 @@ use std::{env, time::Instant};
 use factrs::rerun::RerunObserver;
 use factrs::{
     core::{GaussNewton, LevenMarquardt, SE2, SE3},
-    optimizers::{GncGemanMcClure, GraduatedNonConvexity},
+    optimizers::{GncGemanMcClure, GncParams, GraduatedNonConvexity},
     traits::Optimizer,
     utils::load_g20,
 };
@@ -100,9 +100,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             rerun_init(&mut opt, dim, obj);
             Box::new(opt)
         }
+        #[allow(clippy::field_reassign_with_default)]
         "gnc" => {
-            let mut opt: GraduatedNonConvexity<GncGemanMcClure, LevenMarquardt> =
-                GraduatedNonConvexity::new_default(graph);
+            let mut params: GncParams<LevenMarquardt> = GncParams::default();
+            params.mu_step_size = 1.4;
+            params.base.max_iterations = 200;
+            params.inner.base.max_iterations = 5;
+            params.inner.base.error_tol_absolute = 1e-4;
+            params.inner.base.error_tol_relative = 1e-4;
+            let mut opt: GraduatedNonConvexity<GncGemanMcClure, _> =
+                GraduatedNonConvexity::new(params, graph);
             rerun_init(&mut opt, dim, obj);
             Box::new(opt)
         }

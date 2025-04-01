@@ -1,3 +1,4 @@
-Outlier datasets were created via running,
+Outlier datasets were created via running (with uv installed),
 ```bash
-./add_outliers -i file.g2o -n 50 --seed 1
+./add_outliers -n 400 -i sphere2500.g2o
+```

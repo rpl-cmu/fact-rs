@@ -109,7 +109,7 @@ impl Optimizer for LevenMarquardt {
 
     // TODO: Some form of logging of the lambda value
     // TODO: More sophisticated stopping criteria based on magnitude of the gradient
-    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<(Values, String)> {
+    fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<(Values, String)> {
         // Make an ordering
         let order = ValuesOrder::from_values(&values);
 
@@ -189,8 +189,6 @@ impl Optimizer for LevenMarquardt {
         if self.lambda < self.params.lambda_min {
             self.lambda = self.params.lambda_min;
         }
-
-        self.observers.notify(&values, idx);
 
         Ok((values, format!("{:^12.4e} |", self.lambda)))
     }
