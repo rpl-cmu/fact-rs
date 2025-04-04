@@ -247,12 +247,10 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
             .iter_mut()
             .filter_map(|k| k.as_mut())
             .for_each(|k| k.step_mu(self.params.mu_step_size));
-        // TODO: Do this to appease the borrow checker, but it's not great
-        let kernels = self.kernels.clone();
 
         // Get the most recent mu
         let mut mu = 0.0;
-        for (i, k) in kernels.iter().enumerate() {
+        for (i, k) in self.kernels.iter().enumerate() {
             if let Some(k) = k {
                 mu = k.mu();
             }
@@ -260,9 +258,9 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
 
         // Replace the robust kernels in the graph
         #[allow(clippy::unwrap_used)]
-        self.graph_mut()
+        self.graph
             .iter_mut()
-            .zip(kernels)
+            .zip(self.kernels.clone())
             .filter(|(f, k)| k.is_some())
             .for_each(|(f, k)| f.robust = k.unwrap().upcast());
 
@@ -271,6 +269,8 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
         let mut info = String::new();
         // let inner_params = self.params.inner.base_params();
 
+        // TODO: We leave a lot of performance on the table here, since a lot of
+        // orderings and symbolic decomp will be recomputed each step.
         let mut opt = O::new(self.params.inner.clone(), self.graph().clone());
         let result = opt.optimize(values.clone());
         match result {
