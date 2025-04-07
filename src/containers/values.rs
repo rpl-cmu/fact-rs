@@ -1,9 +1,7 @@
-use std::{
-    collections::hash_map::Entry, default::Default, fmt, fmt::Write, iter::IntoIterator,
-    marker::PhantomData,
-};
+use std::{default::Default, fmt, fmt::Write, iter::IntoIterator, marker::PhantomData};
 
-use foldhash::HashMap;
+use foldhash::fast::RandomState;
+use indexmap::{map::Entry, IndexMap};
 use pad_adapter::PadAdapter;
 
 use super::{
@@ -38,7 +36,7 @@ use crate::{
 #[derive(Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Values {
-    values: HashMap<Key, Box<dyn VariableSafe>>,
+    values: IndexMap<Key, Box<dyn VariableSafe>, RandomState>,
 }
 
 impl Values {
@@ -150,7 +148,7 @@ impl Values {
         V: VariableDtype,
     {
         self.values
-            .remove(&symbol.into())
+            .shift_remove(&symbol.into())
             .and_then(|value| value.downcast::<V>().ok())
             .map(|value| *value)
     }
@@ -270,7 +268,7 @@ impl<KF: KeyFormatter> fmt::Debug for ValuesFormatter<'_, KF> {
 
 impl IntoIterator for Values {
     type Item = (Key, Box<dyn VariableSafe>);
-    type IntoIter = std::collections::hash_map::IntoIter<Key, Box<dyn VariableSafe>>;
+    type IntoIter = indexmap::map::IntoIter<Key, Box<dyn VariableSafe>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.values.into_iter()
