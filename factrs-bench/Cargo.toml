@@ -7,7 +7,17 @@ edition = "2021"
 faer.workspace = true
 nalgebra.workspace = true
 factrs = { version = "0.2.0", path = ".." }
+pretty_env_logger = "0.5.0"
+
+# other dependencies
 tiny-solver = { version = "0.17" }
+sophus_opt = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", features = [
+    "simd",
+] }
+sophus_lie = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn" }
+sophus_autodiff = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn" }
+# use an older version of faer to disable multithreaded in sophus
+sophus_faer = { version = "=0.20.1", package = "faer" }
 
 [dev-dependencies]
 diol = { version = "0.13.0", default-features = false }
