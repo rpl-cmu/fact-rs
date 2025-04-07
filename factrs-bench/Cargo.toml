@@ -4,9 +4,10 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-nalgebra = { version = "0.33", features = ["compare"] }
+faer.workspace = true
+nalgebra.workspace = true
 factrs = { version = "0.2.0", path = ".." }
-tiny-solver = { git = "https://github.com/contagon/tiny-solver-rs", branch = "rayon" }
+tiny-solver = { version = "0.17" }
 
 [dev-dependencies]
 diol = { version = "0.8.3", default-features = false }

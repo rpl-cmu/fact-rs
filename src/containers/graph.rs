@@ -3,7 +3,7 @@ use std::{
     marker::PhantomData,
 };
 
-use faer::sparse::SymbolicSparseColMat;
+use faer::sparse::{Pair, SymbolicSparseColMat};
 use pad_adapter::PadAdapter;
 
 use super::{DefaultSymbolHandler, Idx, KeyFormatter, Values, ValuesOrder};
@@ -79,7 +79,7 @@ impl Graph {
         let total_rows = self.factors.iter().map(|f| f.dim_out()).sum();
         let total_columns = order.dim();
 
-        let mut indices = Vec::<(usize, usize)>::new();
+        let mut indices = Vec::<Pair<usize, usize>>::new();
 
         let _ = self.factors.iter().fold(0, |row, f| {
             f.keys().iter().for_each(|key| {
@@ -89,7 +89,7 @@ impl Graph {
                         dim: col_dim,
                     } = order.get(*key).expect("Key missing in values");
                     (0..*col_dim).for_each(|j| {
-                        indices.push((row + i, col + j));
+                        indices.push(Pair::new(row + i, col + j));
                     });
                 });
             });
@@ -178,5 +178,5 @@ pub struct GraphOrder {
     // Contains the sparsity pattern of the jacobian
     pub sparsity_pattern: SymbolicSparseColMat<usize>,
     // Contains the order of values to put into the sparsity pattern
-    pub sparsity_order: faer::sparse::ValuesOrder<usize>,
+    pub sparsity_order: faer::sparse::Argsort<usize>,
 }

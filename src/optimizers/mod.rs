@@ -53,7 +53,7 @@ pub use gnc::{GncGemanMcClure, GncParams, GraduatedNonConvexity};
 // These aren't tests themselves, but are helpers to test optimizers
 #[cfg(test)]
 pub mod test {
-    use faer::assert_matrix_eq;
+    use matrixcompare::assert_matrix_eq;
     use nalgebra::{DefaultAllocator, DimNameAdd, DimNameSum, ToTypenum};
 
     use super::*;

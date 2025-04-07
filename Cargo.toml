@@ -26,6 +26,15 @@ rustdoc-args = [
 ]
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 
+[workspace.dependencies]
+# TODO: Open issue to make disabling npy feature possible
+faer = { version = "0.21.9", default-features = false, features = [
+    "std",
+    "sparse-linalg",
+    "npy",
+] }
+faer-ext = { version = "0.5.0", features = ["nalgebra"] }
+nalgebra = { version = "0.33.2", features = ["compare"] }
 
 [dependencies]
 foldhash = "0.1.4"
@@ -37,16 +46,13 @@ dyn-clone = "1.0.17"
 factrs-proc = { version = "0.2.0", path = "./factrs-proc" }
 
 # numerical 
-faer = { version = "0.20.2", default-features = false, features = [
-    "perf-warn",
-    "std",
-    "linalg",
-] }
-faer-ext = { version = "0.4.1", features = ["nalgebra"] }
-nalgebra = { version = "0.33.2", features = ["compare"] }
+faer.workspace = true
+nalgebra.workspace = true
+faer-ext.workspace = true
 simba = { version = "0.9.0", default-features = false }
 num-dual = "0.11.0"
 matrixcompare = { version = "0.3.0" }
+statrs = { version = "0.18.0", default-features = false }
 
 # serialization
 serde = { version = "1.0.217", optional = true }
@@ -56,7 +62,6 @@ factrs-typetag = { version = "0.2.0", optional = true, path = "./factrs-typetag"
 rerun = { version = "0.22", optional = true, default-features = false, features = [
     "sdk",
 ] }
-statrs = { version = "0.18.0", default-features = false }
 
 
 [features]

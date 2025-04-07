@@ -28,6 +28,8 @@ fn tinysolver(bencher: Bencher, file: &str) {
 }
 
 fn main() -> std::io::Result<()> {
+    faer::set_global_parallelism(faer::Par::Seq);
+
     let to_run = list![factrs, tinysolver];
 
     let mut bench = Bench::new(BenchConfig::from_args()?);
