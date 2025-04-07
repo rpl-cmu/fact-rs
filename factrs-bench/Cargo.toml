@@ -10,12 +10,8 @@ factrs = { version = "0.2.0", path = ".." }
 tiny-solver = { version = "0.17" }
 
 [dev-dependencies]
-diol = { version = "0.8.3", default-features = false }
+diol = { version = "0.13.0", default-features = false }
 
 [[bench]]
-name = "g2o-2d"
-harness = false
-
-[[bench]]
-name = "g2o-3d"
+name = "g2o"
 harness = false

@@ -1,4 +1,4 @@
-use diol::prelude::{black_box, list, Bench, BenchConfig, Bencher};
+use diol::prelude::*;
 
 const DATA_DIR: &str = "../examples/data/";
 
@@ -27,13 +27,14 @@ fn tinysolver(bencher: Bencher, file: &str) {
     });
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> eyre::Result<()> {
     faer::set_global_parallelism(faer::Par::Seq);
 
     let to_run = list![factrs, tinysolver];
 
-    let mut bench = Bench::new(BenchConfig::from_args()?);
-    bench.register_many(to_run, ["sphere2500.g2o", "parking-garage.g2o"]);
+    let bench = Bench::from_args()?;
+    bench.register_many("3d", to_run, ["sphere2500.g2o", "parking-garage.g2o"]);
+    bench.register_many("2d", to_run, ["M3500.g2o"]);
     bench.run()?;
 
     Ok(())
