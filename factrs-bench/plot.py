@@ -88,7 +88,7 @@ df = df.with_columns(
 
 # Plot them using seaborn
 setup_plot()
-fig, ax = plt.subplots(1, 1, figsize=(252.0 / 72.27 + 0.5, 2.5), layout="constrained")
+fig, ax = plt.subplots(1, 1, figsize=(252.0 / 72.27 + 0.5, 2.25), layout="constrained")
 sns.barplot(
     data=df,
     x="Dataset",
@@ -97,6 +97,7 @@ sns.barplot(
     ax=ax,
     estimator="median",
     errorbar=lambda x: (x.min(), x.max()),  # type: ignore
+    order=["M3500", "Parking Garage", "Sphere2500"],
 )
 
 ax.tick_params(axis="x", pad=-2)
@@ -114,7 +115,7 @@ leg = fig.legend(
     labelspacing=0.15,
     loc="outside upper left",
     columnspacing=3.65,
-    bbox_to_anchor=(0.125, 1.15),
+    bbox_to_anchor=(0.125, 1.17),
 ).get_frame()
 leg.set_boxstyle("square")  # type: ignore
 leg.set_linewidth(1.0)
