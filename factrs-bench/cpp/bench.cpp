@@ -17,7 +17,6 @@ std::vector<std::string> files_3d{"sphere2500.g2o", "parking-garage.g2o"};
 std::vector<std::string> files_2d{"M3500.g2o"};
 
 // ------------------------- Ceres ------------------------- //
-// TODO: Only values really need to be copied, is there a way around that?
 template <typename DIM>
 void run_ceres(nanobench::Bench *bench, std::string file) {
   std::map<int, typename DIM::Var> og_poses;
@@ -25,7 +24,7 @@ void run_ceres(nanobench::Bench *bench, std::string file) {
   std::tie(og_poses, og_constraints) = load_ceres<DIM>(directory + file);
 
   bench->context("benchmark", "ceres");
-  bench->run(file, [&]() {
+  bench->run("ceres_" + file, [&]() {
     // Copy the poses and constraints to avoid modifying the original data
     auto poses(og_poses);
     auto constraints(og_constraints);
@@ -71,7 +70,7 @@ void run_gtsam(nanobench::Bench *bench, std::string file, bool is3D) {
   auto gv = load_gtsam(directory + file, is3D);
 
   bench->context("benchmark", "gtsam");
-  bench->run(file, [&]() {
+  bench->run("gtsam_" + file, [&]() {
     gtsam::NonlinearFactorGraph graph(*gv.first);
     gtsam::Values values(*gv.second);
 
@@ -90,9 +89,18 @@ char const *markdown() {
 
 // ------------------------- Run benchmarks ------------------------- //
 int main(int argc, char *argv[]) {
-
   nanobench::Bench b;
   b.timeUnit(std::chrono::milliseconds(1), "ms");
+  b.maxEpochTime(std::chrono::seconds(2));
+
+  // read in optional number of epochs from command line
+  if (argc > 1) {
+    int epochs = std::atoi(argv[1]);
+    if (epochs > 0) {
+      std::cout << "Running " << epochs << " epochs\n";
+      b.epochs(epochs);
+    }
+  }
 
   // 3d benchmarks
   b.title("3d benchmarks");
@@ -102,6 +110,9 @@ int main(int argc, char *argv[]) {
   }
   std::cout << "\nIn Markdown format:\n";
   b.render(markdown(), std::cout);
+  std::ofstream outFile("factrs-bench/cpp_3d.json");
+  b.render(nanobench::templates::json(), outFile);
+  outFile.close();
 
   // 2d benchmarks
   b.title("2d benchmarks");
@@ -111,4 +122,7 @@ int main(int argc, char *argv[]) {
   }
   std::cout << "\nIn Markdown format:\n";
   b.render(markdown(), std::cout);
+  std::ofstream outFile2("factrs-bench/cpp_2d.json");
+  b.render(nanobench::templates::json(), outFile2);
+  outFile2.close();
 }

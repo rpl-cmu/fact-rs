@@ -9,3 +9,7 @@ perf*
 .cache
 
 factrs-proc/target
+
+# benchmark results
+factrs-bench/benchmarks*
+factrs-bench/*.json
