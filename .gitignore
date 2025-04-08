@@ -6,5 +6,6 @@
 *.png
 *.sh
 perf*
+.cache
 
 factrs-proc/target

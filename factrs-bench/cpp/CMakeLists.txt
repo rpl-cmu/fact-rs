@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(factrs-benchmark-deps
+project(factrs-bench-cpp
     VERSION 0.1.0
     LANGUAGES CXX
 )
@@ -19,6 +19,22 @@ FetchContent_Declare(
     USES_TERMINAL_DOWNLOAD TRUE
 )
 FetchContent_MakeAvailable(nanobench)
+
+# ------------------------- Include Ceres ------------------------- #
+set(BUILD_TESTING OFF CACHE BOOL "")
+set(BUILD_BENCHMARKS OFF CACHE BOOL "")
+set(PROVIDE_UNINSTALL_TARGET OFF CACHE BOOL "")
+set(BUILD_EXAMPLES OFF CACHE BOOL "") # I may need this...
+
+FetchContent_Declare(
+    Ceres
+    GIT_REPOSITORY https://github.com/ceres-solver/ceres-solver.git
+    GIT_TAG        2.2.0
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS   TRUE
+    USES_TERMINAL_DOWNLOAD TRUE
+)
+FetchContent_MakeAvailable(Ceres)
 
 # ------------------------- Include GTSAM ------------------------- #
 # Enable features to make closer to factrs default
@@ -52,6 +68,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(GTSAM)
 
+# ------------------------- Our executable ------------------------- #
+
 add_executable(bench bench.cpp)
-target_link_libraries(bench PRIVATE gtsam nanobench)
+target_link_libraries(bench PRIVATE nanobench gtsam Ceres::ceres)
+# Manually include some Ceres g2o helpers
+target_include_directories(bench PRIVATE ${Ceres_SOURCE_DIR}/examples/slam)
 set_property(TARGET bench PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
