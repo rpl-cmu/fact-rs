@@ -1183,6 +1183,7 @@ dependencies = [
  "faer 0.21.9",
  "nalgebra",
  "pretty_env_logger",
+ "rayon",
  "sophus_autodiff",
  "sophus_lie",
  "sophus_opt",

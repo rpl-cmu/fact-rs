@@ -8,9 +8,13 @@ faer.workspace = true
 nalgebra.workspace = true
 factrs = { version = "0.2.0", path = ".." }
 pretty_env_logger = "0.5.0"
+rayon = "1.10.0"
 
 # other dependencies
 tiny-solver = { version = "0.17" }
+# use a custom version of sophus to give
+# 1) Add cloning to graph/value structure for use in benchmarks
+# 2) Add stopping criteria to LM, so it takes same # of steps.
 sophus_opt = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", features = [
     "simd",
 ] }

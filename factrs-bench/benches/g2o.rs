@@ -50,9 +50,17 @@ fn sophus(bench: Bencher, file: &str) {
     })
 }
 
+// NOTE: tiny-solver is still using rayon under the hood for jacobian
+// computation, Setting the number of rayon threads to 1 DRASTICALLY degrades
+// it's performance.
 fn main() -> eyre::Result<()> {
+    // set everything to single-threaded
     faer::set_global_parallelism(faer::Par::Seq);
     sophus_faer::set_global_parallelism(sophus_faer::Parallelism::None);
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(1)
+        .build_global()
+        .unwrap();
 
     let to_run = list![factrs, tinysolver, sophus];
 
