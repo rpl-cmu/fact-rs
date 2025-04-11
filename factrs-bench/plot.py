@@ -98,6 +98,7 @@ sns.barplot(
     estimator="median",
     errorbar=lambda x: (x.min(), x.max()),  # type: ignore
     order=["M3500", "Parking Garage", "Sphere2500"],
+    hue_order=["fact-rs", "sophus-rs", "tiny-solver-rs", "gtsam", "ceres"],
 )
 
 ax.tick_params(axis="x", pad=-2)
