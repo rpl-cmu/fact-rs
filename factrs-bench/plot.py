@@ -88,7 +88,20 @@ df = df.with_columns(
 
 # Plot them using seaborn
 setup_plot()
-fig, ax = plt.subplots(1, 1, figsize=(252.0 / 72.27 + 0.5, 2.25), layout="constrained")
+# paper sized
+# figsize = (252.0 / 72.27 + 0.5, 2.25)
+# legend_opts = {
+#     "columnspacing": 3.65,
+#     "bbox_to_anchor": (0.125, 1.17),
+# }
+# readme sized
+figsize = (4, 1.5)
+legend_opts = {
+    "columnspacing": 3.75,
+    "bbox_to_anchor": (0.125, 1.3),
+}
+
+fig, ax = plt.subplots(1, 1, figsize=figsize, layout="constrained")
 sns.barplot(
     data=df,
     x="Dataset",
@@ -115,12 +128,12 @@ leg = fig.legend(
     borderpad=0.2,
     labelspacing=0.15,
     loc="outside upper left",
-    columnspacing=3.65,
-    bbox_to_anchor=(0.125, 1.17),
+    **legend_opts,
 ).get_frame()
 leg.set_boxstyle("square")  # type: ignore
 leg.set_linewidth(1.0)
 
 plt.savefig(DIR / "benchmarks.png", dpi=300, bbox_inches="tight")
 plt.savefig(DIR / "benchmarks.pdf", dpi=300, bbox_inches="tight")
+plt.savefig(DIR / "benchmarks.svg", dpi=300, bbox_inches="tight")
 # plt.show()
