@@ -1,8 +1,5 @@
 //! Robust kernels (M-Estimators) for robust estimation.
-//!
-//! We recommend checking out "Parameter Estimation Techniques:  A Tutorial with
-//! Application to Conic Fitting" by Zhengyou Zhang for details on our
-//! implementations.
+//! [^@zhangParameterEstimationTechniques1997]
 //!
 //! They can roughly be split into the following categories:
 //!
@@ -20,6 +17,8 @@
 //! Generally constant asymptotic behavior is the best at outlier rejection, but
 //! relies heavily on good initialization. Some work, such as Graduated
 //! Non-Convexity (GNC), has been shown to circumvent this requirement.
+//!
+//! [^@zhangParameterEstimationTechniques1997]: Zhang, Zhengyou. “Parameter Estimation Techniques: A Tutorial with Application to Conic Fitting.” Image and Vision Computing, vol. 15, no. 1, 1997, pp. 59–76
 
 use std::fmt::Debug;
 

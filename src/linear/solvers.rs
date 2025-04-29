@@ -9,7 +9,7 @@ use faer::{
 use crate::dtype;
 
 /// Trait to solve sparse linear systems
-pub trait LinearSolver: Default {
+pub trait LinearSolver {
     /// Solve a symmetric linear system
     ///
     /// This will be used by Cholesky to solve A^T A and by Levenberg-Marquardt
@@ -22,6 +22,12 @@ pub trait LinearSolver: Default {
     /// Used by QR to solve Ax = b, where the number of rows in A is greater
     /// than the number of columns
     fn solve_lst_sq(&mut self, a: SparseColMatRef<usize, dtype>, b: MatRef<dtype>) -> Mat<dtype>;
+}
+
+impl Default for Box<dyn LinearSolver> {
+    fn default() -> Self {
+        Box::new(CholeskySolver::default())
+    }
 }
 
 // ------------------------- Cholesky Linear Solver ------------------------- //

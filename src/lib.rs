@@ -68,7 +68,7 @@
 //! graph.add_factor(factor);
 //!
 //! // Optimize!
-//! let mut opt: GaussNewton = GaussNewton::new(graph);
+//! let mut opt: GaussNewton = GaussNewton::new_default(graph);
 //! let result = opt.optimize(values).unwrap();
 //! println!("Results {:#}", result);
 //! ```
@@ -217,6 +217,7 @@ pub mod core {
         assign_symbols,
         containers::{Factor, Graph, Values},
         fac,
+        linalg::{Vector1, Vector2, Vector3},
         noise::{GaussianNoise, UnitNoise},
         optimizers::{GaussNewton, LevenMarquardt},
         residuals::{BetweenResidual, PriorResidual},

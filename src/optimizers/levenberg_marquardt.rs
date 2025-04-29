@@ -3,29 +3,39 @@ use std::ops::Mul;
 use faer::{scale, sparse::SparseColMat};
 use faer_ext::IntoNalgebra;
 
-use super::{OptError, OptObserverVec, OptParams, OptResult, Optimizer};
+use super::{BaseOptParams, OptError, OptObserverVec, OptParams, OptResult, Optimizer};
 use crate::{
     containers::{Graph, GraphOrder, Values, ValuesOrder},
     dtype,
     linalg::DiffResult,
-    linear::{CholeskySolver, LinearSolver, LinearValues},
+    linear::{LinearSolver, LinearValues},
 };
 
+/// Levenberg-Marquardt specific parameters
+#[derive(Clone, Debug)]
 pub struct LevenParams {
     pub lambda_min: dtype,
     pub lambda_max: dtype,
     pub lambda_factor: dtype,
     pub diagonal_damping: bool,
+    pub base: BaseOptParams,
 }
 
 impl Default for LevenParams {
     fn default() -> Self {
         Self {
-            lambda_min: 0.0,
+            lambda_min: 1e-10,
             lambda_max: 1e5,
             lambda_factor: 10.0,
             diagonal_damping: true,
+            base: Default::default(),
         }
+    }
+}
+
+impl OptParams for LevenParams {
+    fn base_params(&self) -> &BaseOptParams {
+        &self.base
     }
 }
 
@@ -33,69 +43,85 @@ impl Default for LevenParams {
 ///
 /// Solves a damped version of the normal equations,  
 /// $$A^\top A \Delta \Theta + \lambda diag(A) = A^\top b$$
-/// each optimizer steps. Parameters can be modified using the `params_base` and
-/// `params_leven` fields, and observers add using `observers`. Additionally, is
-/// generic over the linear solver, but defaults to [CholeskySolver]. See the
+/// each optimizer steps. It defaults
+/// to using [CholeskySolver](crate::linear::CholeskySolver) under the hood, but
+/// this can be changed using [set_solver](LevenMarquardt::set_solver). See the
 /// [linear](crate::linear) module for more linear solver options.
-pub struct LevenMarquardt<S: LinearSolver = CholeskySolver> {
+pub struct LevenMarquardt {
     graph: Graph,
-    solver: S,
-    /// Basic parameters for the optimizer
-    pub params_base: OptParams,
+    solver: Box<dyn LinearSolver>,
     /// Levenberg-Marquardt specific parameters
-    pub params_leven: LevenParams,
+    params: LevenParams,
     /// Observers for the optimizer
-    pub observers: OptObserverVec<Values>,
+    observers: OptObserverVec,
     lambda: dtype,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
 }
 
-impl<S: LinearSolver> LevenMarquardt<S> {
-    pub fn new(graph: Graph) -> Self {
+impl LevenMarquardt {
+    /// Set the linear solver to use for solving the linear system
+    pub fn set_solver(&mut self, solver: impl LinearSolver + 'static) {
+        self.solver = Box::new(solver);
+    }
+}
+
+impl Optimizer for LevenMarquardt {
+    type Params = LevenParams;
+
+    fn new(params: Self::Params, graph: Graph) -> Self {
         Self {
             graph,
-            solver: S::default(),
-            params_base: OptParams::default(),
-            params_leven: LevenParams::default(),
+            solver: Default::default(),
             observers: OptObserverVec::default(),
+            params,
             lambda: 1e-5,
             graph_order: None,
         }
     }
 
-    pub fn graph(&self) -> &Graph {
+    fn observers(&self) -> &OptObserverVec {
+        &self.observers
+    }
+
+    fn observers_mut(&mut self) -> &mut OptObserverVec {
+        &mut self.observers
+    }
+
+    fn graph(&self) -> &Graph {
         &self.graph
     }
-}
 
-impl<S: LinearSolver> Optimizer for LevenMarquardt<S> {
-    type Input = Values;
+    fn graph_mut(&mut self) -> &mut Graph {
+        &mut self.graph
+    }
 
-    fn params(&self) -> &OptParams {
-        &self.params_base
+    fn params(&self) -> &BaseOptParams {
+        &self.params.base
     }
 
     fn error(&self, values: &Values) -> crate::dtype {
         self.graph.error(values)
     }
 
-    fn init(&mut self, _values: &Values) {
+    fn init(&mut self, values: &Values) -> Vec<&'static str> {
         // TODO: Some way to manual specify how to computer ValuesOrder
         // Precompute the sparsity pattern
         self.graph_order = Some(
             self.graph
-                .sparsity_pattern(ValuesOrder::from_values(_values)),
+                .sparsity_pattern(ValuesOrder::from_values(values)),
         );
+
+        vec!["   Lambda   "]
     }
 
     // TODO: Some form of logging of the lambda value
     // TODO: More sophisticated stopping criteria based on magnitude of the gradient
-    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<Values> {
+    fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<(Values, String)> {
         // Make an ordering
         let order = ValuesOrder::from_values(&values);
 
-        // Solve the linear system
+        // Form the linear system
         let linear_graph = self.graph.linearize(&values);
         let DiffResult { value: r, diff: j } =
             linear_graph.residual_jacobian(self.graph_order.as_ref().expect("Missing graph order"));
@@ -109,7 +135,7 @@ impl<S: LinearSolver> Optimizer for LevenMarquardt<S> {
             .mul(j.as_ref());
 
         // Form I
-        let triplets_i = if self.params_leven.diagonal_damping {
+        let triplets_i = if self.params.diagonal_damping {
             (0..jtj.ncols())
                 .map(|i| (i as isize, i as isize, jtj[(i, i)]))
                 .collect::<Vec<_>>()
@@ -159,22 +185,20 @@ impl<S: LinearSolver> Optimizer for LevenMarquardt<S> {
                 break;
             }
 
-            self.lambda *= self.params_leven.lambda_factor;
-            if self.lambda > self.params_leven.lambda_max {
+            self.lambda *= self.params.lambda_factor;
+            if self.lambda > self.params.lambda_max {
                 return Err(OptError::FailedToStep);
             }
         }
 
         // Update the values
         values.oplus_mut(&dx);
-        self.lambda /= self.params_leven.lambda_factor;
-        if self.lambda < self.params_leven.lambda_min {
-            self.lambda = self.params_leven.lambda_min;
+        self.lambda /= self.params.lambda_factor;
+        if self.lambda < self.params.lambda_min {
+            self.lambda = self.params.lambda_min;
         }
 
-        self.observers.notify(&values, idx);
-
-        Ok(values)
+        Ok((values, format!("{:^12.4e} |", self.lambda)))
     }
 }
 

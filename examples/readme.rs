@@ -28,7 +28,7 @@ fn main() {
     graph.add_factor(factor);
 
     // Optimize!
-    let mut opt: GaussNewton = GaussNewton::new(graph);
+    let mut opt: GaussNewton = GaussNewton::new_default(graph);
     let result = opt.optimize(values).unwrap();
     println!("Results {:#}", result);
 }
