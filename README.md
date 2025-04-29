@@ -115,7 +115,7 @@ let f = fac![PriorResidual::new(id), Y(0), 0.1 as std];
 Performance-wise, factrs is the fastest Rust library, and competitive with other C++ libraries. Benchmarks were ran on a 12th Gen Intel i9 and are all single-threaded (for now). Current benchmarks include [sophus-rs](https://github.com/sophus-vision/sophus-rs), [tiny-solver-rs](https://github.com/powei-lin/tiny-solver-rs), [gtsam](https://github.com/borglab/gtsam/), and [ceres](http://ceres-solver.org/). Data can be found in the [examples/data](/examples/data) folder.
 
 <p align="center">
-  <img src="factrs-bench/benchmarks.svg" />
+  <img src="factrs-bench/benchmarks.svg" width="100%"/>
 </p>
 
 *Note, gtsam and Ceres are faster for the parking garage due to leveraging the sparsity of the pose graph better using the Baye's tree, something that is planned for factrs.*
