@@ -28,8 +28,9 @@
 //! trait to give similar structure and usage.
 //!
 //! Additionally observers can be added to the optimizer to monitor the progress
-//! of the optimization. A prebuilt [Rerun](https://rerun.io/) can be enabled via
-//! the `rerun` feature.
+//! of the optimization. A prebuilt [rerun
+//! observer](crate::rerun::RerunObserver) can be enabled via the `rerun`
+//! feature.
 //!
 //! If you desire to implement your own optimizer, we additionally recommend
 //! using the [test_optimizer](crate::test_optimizer) macro to run a handful of
@@ -48,7 +49,7 @@ mod levenberg_marquardt;
 pub use levenberg_marquardt::{LevenMarquardt, LevenParams};
 
 mod gnc;
-pub use gnc::{GncGemanMcClure, GncParams, GraduatedNonConvexity};
+pub use gnc::{ConvexableKernel, GncGemanMcClure, GncParams, GraduatedNonConvexity};
 
 // These aren't tests themselves, but are helpers to test optimizers
 #[cfg(test)]

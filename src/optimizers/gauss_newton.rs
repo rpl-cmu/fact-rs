@@ -10,21 +10,27 @@ use crate::{
 
 /// The Gauss-Newton optimizer
 ///
-/// Solves $A \Delta \Theta = b$ directly for each optimizer steps. Parameters
-/// can be modified using the `params` field, and observers add using
-/// `observers`. Additionally, is generic over the linear solver, but defaults
-/// to [CholeskySolver]. See the [linear](crate::linear) module for more linear
-/// solver options.
+/// Solves $A \Delta \Theta = b$ directly for each optimizer steps. It defaults
+/// to using [CholeskySolver](crate::linear::CholeskySolver) under the hood, but
+/// this can be changed using [set_solver](GaussNewton::set_solver). See
+/// the [linear](crate::linear) module for more linear solver options.
 pub struct GaussNewton {
     graph: Graph,
     // TODO: Need to handle this in a better way?
-    pub solver: Box<dyn LinearSolver>,
+    solver: Box<dyn LinearSolver>,
     /// Basic parameters for the optimizer
     params: BaseOptParams,
     /// Observers for the optimizer
     observers: OptObserverVec,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
+}
+
+impl GaussNewton {
+    /// Sets the linear solver to use for the optimizer.
+    pub fn set_solver(&mut self, solver: impl LinearSolver + 'static) {
+        self.solver = Box::new(solver);
+    }
 }
 
 impl Optimizer for GaussNewton {

@@ -15,6 +15,9 @@ pub enum OptError {
 pub type OptResult<T> = Result<T, OptError>;
 
 // ------------------------- Optimizer Params ------------------------- //
+/// Parameters for the optimizer
+///
+/// Simple trait to return base parameters for the optimizer.
 pub trait OptParams: Default + Clone {
     fn base_params(&self) -> &BaseOptParams;
 }
@@ -112,6 +115,8 @@ pub trait Optimizer {
     fn params(&self) -> &BaseOptParams;
 
     /// Perform a single step of optimization
+    ///
+    /// Returns the new values and a string with information about the step
     fn step(&mut self, values: Values, idx: usize) -> OptResult<(Values, String)>;
 
     /// Compute the error of the current values
@@ -125,7 +130,6 @@ pub trait Optimizer {
     }
 
     // ------------------------- Derived from the above ------------------------- //
-    // TODO: Custom logging based on optimizer
     /// Main optimization call function
     fn optimize(&mut self, mut values: Values) -> OptResult<Values> {
         // Setup up everything from our values
