@@ -84,6 +84,7 @@ serde = [
     "dep:factrs-typetag",
     "factrs-proc/serde",
     "nalgebra/serde-serialize",
+    "indexmap/serde",
 ]
 
 # Support for conversion to rerun variable types
