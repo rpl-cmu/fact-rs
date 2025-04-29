@@ -1,6 +1,6 @@
 # fact.rs
 
-[![minimum rustc 1.83](https://img.shields.io/badge/rustc-1.83+-red.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
+[![minimum rustc 1.84](https://img.shields.io/badge/rustc-1.84+-red.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
 [![crate](https://img.shields.io/crates/v/factrs.svg)](https://crates.io/crates/factrs)
 [![doc](https://docs.rs/factrs/badge.svg)](https://docs.rs/factrs)
 [![ci](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml/badge.svg)](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml)
