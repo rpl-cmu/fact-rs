@@ -179,7 +179,7 @@ mod test {
         let x = solver.solve_lst_sq(a.as_ref(), b.as_ref());
         println!("{:?}", x);
 
-        let relative_err = |a: f64, b: f64| (a - b).abs() / f64::max(a.abs(), b.abs());
+        let relative_err = |a: dtype, b: dtype| (a - b).abs() / dtype::max(a.abs(), b.abs());
         assert!(relative_err(x[(0, 0)], x_exp[(0, 0)]) < 1e-6);
         assert!(relative_err(x[(1, 0)], x_exp[(1, 0)]) < 1e-6);
     }

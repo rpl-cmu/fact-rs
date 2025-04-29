@@ -158,7 +158,9 @@ impl Optimizer for LevenMarquardt {
 
         loop {
             // Make Ax = b
-            let a = &jtj + (&i * self.lambda);
+            // Have to cast due to missing impl in faer for f32
+            #[allow(clippy::unnecessary_cast)]
+            let a = &jtj + (&i * self.lambda as f64);
 
             // Solve Ax = b
             let delta = self
