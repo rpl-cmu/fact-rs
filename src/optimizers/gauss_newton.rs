@@ -16,7 +16,6 @@ use crate::{
 /// the [linear](crate::linear) module for more linear solver options.
 pub struct GaussNewton {
     graph: Graph,
-    // TODO: Need to handle this in a better way?
     solver: Box<dyn LinearSolver>,
     /// Basic parameters for the optimizer
     params: BaseOptParams,

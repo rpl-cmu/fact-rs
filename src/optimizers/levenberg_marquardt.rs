@@ -1,6 +1,6 @@
 use std::ops::Mul;
 
-use faer::{scale, sparse::SparseColMat};
+use faer::sparse::{SparseColMat, Triplet};
 use faer_ext::IntoNalgebra;
 
 use super::{BaseOptParams, OptError, OptObserverVec, OptParams, OptResult, Optimizer};
@@ -115,7 +115,6 @@ impl Optimizer for LevenMarquardt {
         vec!["   Lambda   "]
     }
 
-    // TODO: Some form of logging of the lambda value
     // TODO: More sophisticated stopping criteria based on magnitude of the gradient
     fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<(Values, String)> {
         // Make an ordering
@@ -137,11 +136,11 @@ impl Optimizer for LevenMarquardt {
         // Form I
         let triplets_i = if self.params.diagonal_damping {
             (0..jtj.ncols())
-                .map(|i| (i as isize, i as isize, jtj[(i, i)]))
+                .map(|i| Triplet::new(i as isize, i as isize, jtj[(i, i)]))
                 .collect::<Vec<_>>()
         } else {
             (0..jtj.ncols())
-                .map(|i| (i as isize, i as isize, 1.0))
+                .map(|i| Triplet::new(i as isize, i as isize, 1.0))
                 .collect::<Vec<_>>()
         };
         let i = SparseColMat::<usize, dtype>::try_new_from_nonnegative_triplets(
@@ -159,7 +158,9 @@ impl Optimizer for LevenMarquardt {
 
         loop {
             // Make Ax = b
-            let a = &jtj + (&i * scale(self.lambda));
+            // Have to cast due to missing impl in faer for f32
+            #[allow(clippy::unnecessary_cast)]
+            let a = &jtj + (&i * self.lambda as f64);
 
             // Solve Ax = b
             let delta = self

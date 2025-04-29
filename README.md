@@ -1,6 +1,6 @@
 # fact.rs
 
-[![minimum rustc 1.83](https://img.shields.io/badge/rustc-1.83+-red.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
+[![minimum rustc 1.84](https://img.shields.io/badge/rustc-1.84+-red.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
 [![crate](https://img.shields.io/crates/v/factrs.svg)](https://crates.io/crates/factrs)
 [![doc](https://docs.rs/factrs/badge.svg)](https://docs.rs/factrs)
 [![ci](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml/badge.svg)](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml)
@@ -112,27 +112,13 @@ let f = fac![PriorResidual::new(id), Y(0), 0.1 as std];
 ```
 
 # Benchmarks
-Performance-wise, factrs is competitive with alternative libraries. Benchmarks were ran on a 12th Gen Intel i9 and are all single-threaded (for now). Current benchmarks include [gtsam](https://github.com/borglab/gtsam/) and [tiny-solver-rs](https://github.com/powei-lin/tiny-solver-rs) and data can be found in the [examples/data](/examples/data) folder.
+Performance-wise, factrs is the fastest Rust library, and competitive with other C++ libraries. Benchmarks were ran on a 12th Gen Intel i9 and are all single-threaded (for now). Current benchmarks include [sophus-rs](https://github.com/sophus-vision/sophus-rs), [tiny-solver-rs](https://github.com/powei-lin/tiny-solver-rs), [gtsam](https://github.com/borglab/gtsam/), and [ceres](http://ceres-solver.org/). Data can be found in the [examples/data](/examples/data) folder.
 
-### 2D Benchmarks
-| benchmark   | args  | fastest   | median    | mean      |
-|-------------|-------|-----------|-----------|-----------|
-| factrs      | M3500 | 81.23 ms  | 82.13 ms  | 82.80 ms  |
-| gtsam       | M3500 | 160.00 ms | 161.13 ms | 161.14 ms |
-| tiny-solver | M3500 | 125.13 ms | 130.46 ms | 132.08 ms |
+<p align="center">
+  <img src="factrs-bench/benchmarks.svg" width="100%"/>
+</p>
 
-
-### 3D Benchmarks
-| benchmark   | args           | fastest   | median    | mean      |
-|-------------|----------------|-----------|-----------|-----------|
-| factrs      | sphere2500     | 352.97 ms | 355.01 ms | 355.14 ms |
-| gtsam       | sphere2500     | 389.81 ms | 395.16 ms | 396.65 ms |
-| tiny-solver | sphere2500     | 600.80 ms | 615.90 ms | 616.75 ms |
-| factrs      | parking-garage | 292.14 ms | 294.01 ms | 294.10 ms |
-| gtsam       | parking-garage | 113.24 ms | 114.74 ms | 114.45 ms |
-| tiny-solver | parking-garage | 329.48 ms | 334.78 ms | 335.17 ms |
-
-*Note, gtsam is significantly faster for the parking garage due to leveraging the sparsity of the pose graph better using the Baye's tree, something that is planned for factrs.*
+*Note, gtsam and Ceres are faster for the parking garage due to leveraging the sparsity of the pose graph better using the Baye's tree, something that is planned for factrs.*
 
 To run the rust benchmarks after cloning, simply run,
 ```bash
@@ -145,9 +131,7 @@ cmake --build build
 ./build/bench
 ```
 
-both of which have alias commands in the root justfile.
-
-There is still some benchmarking work to be done and we'd love some help if you'd like an easy way to contribute! There's a few libraries that could be added, specifically ceres and sophus-rs. Additionally, it'd be nice if all benchmarks had a rust frontend using FFI for easier running - this was begun in the `easton/benches` branch.
+both of which have alias commands in the root justfile (which also includes a plotting alias).
 
 # Installation
 Simply add via cargo as you do any rust dependency,
