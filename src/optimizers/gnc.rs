@@ -113,14 +113,31 @@ impl Debug for GncGemanMcClure {
 }
 
 // ------------------------- GNC ------------------------- //
+/// Parameters for the Graduated Non-Convexity optimizer
+///
+/// This is a wrapper around the base optimizer parameters and the
+/// optimizer parameters for the inner optimizer. Generic over the type of the
+/// inner optimizer.
 #[derive(Debug)]
 pub struct GncParams<O: Optimizer = LevenMarquardt>
 where
     O::Params: Clone,
 {
+    /// Basic parameters for GNC Optimizer
     pub base: BaseOptParams,
+    /// Parameters for the inner optimizer
+    ///
+    /// Will likely want to lower the max number of iterations, and increase the
+    /// tolerances.
     pub inner: O::Params,
+    /// Step size for the mu parameter
+    ///
+    /// This is the step size for the mu parameter. Defaults to 1.4.
     pub mu_step_size: dtype,
+    /// Percentile for the inlier threshold
+    ///
+    /// This is the percentile for the inlier threshold. Defaults to 0.95. Will
+    /// be used to compute kernel parameters for robust kernels.
     pub percentile: dtype,
 }
 
@@ -152,6 +169,25 @@ impl<O: Optimizer> OptParams for GncParams<O> {
     }
 }
 
+/// Graduated Non-Convexity [^@yangGraduatedNonConvexityRobust2020] optimizer
+///
+/// This optimizer uses a "convexification" approach to reduce initialization
+/// sensitivity for robust nonlinear least-squares.
+///
+/// Specifically, it uses a set of robust kernels that can be convexified using
+/// a parameter $\mu$. This looks like,
+/// $$
+/// \Theta^* = \argmin_{\Theta}
+/// \sum_{i} \rho_i(||r_i(\Theta)||_{\Sigma_i}; \mu) )
+/// $$
+/// Note, our implementation (like the original) uses the same $\mu$ for each
+/// factor. The optimizer begins with a $\mu$ for such that $\rho(\cdot; \mu)$
+/// is convex, and progressively steps $\mu$, until $\rho(\cdot; \mu)$ is an
+/// M-estimator, generally with constant asymptotic behavior. While a heuristic,
+/// this has been shown to decrease sensitivity to initialization, a known
+/// problem for M-estimation and outlier rejection.
+///
+/// [^@yangGraduatedNonConvexityRobust2020]: Yang, Heng, et al. “Graduated Non-Convexity for Robust Spatial Perception: From Non-Minimal Solvers to Global Outlier Rejection.” IEEE Robotics and Automation Letters, vol. 5, no. 2, Apr. 2020, pp. 1127–34
 pub struct GraduatedNonConvexity<K = GncGemanMcClure, O: Optimizer = LevenMarquardt> {
     /// Holds the kernels
     ///

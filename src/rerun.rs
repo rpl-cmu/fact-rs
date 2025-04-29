@@ -456,12 +456,11 @@ impl From<Graph> for (GraphNodes, GraphEdges) {
 /// Rerun optimizer observer
 ///
 /// Observer that can be plugged into an optimizer to record the state of the
-/// optimization at each optimization step. Generic V is the variable type and R
-/// is the rerun type.
+/// optimization at each optimization step. Generic `V` is the variable type
+/// and `R` is the rerun type.
 ///
-/// See the observers field of either
-/// [GaussNewton](crate::optimizers::GaussNewton) or
-/// [LevenMarquardt](crate::optimizers::LevenMarquardt) for more information.
+/// See the observers methods of the [Optimizer](crate::optimizers::Optimizer)
+/// for more information.
 pub struct RerunObserver<V, R>
 where
     V: VariableDtype + 'static,

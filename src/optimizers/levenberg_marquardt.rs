@@ -11,6 +11,7 @@ use crate::{
     linear::{LinearSolver, LinearValues},
 };
 
+/// Levenberg-Marquardt specific parameters
 #[derive(Clone, Debug)]
 pub struct LevenParams {
     pub lambda_min: dtype,
@@ -42,13 +43,13 @@ impl OptParams for LevenParams {
 ///
 /// Solves a damped version of the normal equations,  
 /// $$A^\top A \Delta \Theta + \lambda diag(A) = A^\top b$$
-/// each optimizer steps. Parameters can be modified using the `params_base` and
-/// `params_leven` fields, and observers add using `observers`. Additionally, is
-/// generic over the linear solver, but defaults to [CholeskySolver]. See the
+/// each optimizer steps. It defaults
+/// to using [CholeskySolver](crate::linear::CholeskySolver) under the hood, but
+/// this can be changed using [set_solver](LevenMarquardt::set_solver). See the
 /// [linear](crate::linear) module for more linear solver options.
 pub struct LevenMarquardt {
     graph: Graph,
-    pub solver: Box<dyn LinearSolver>,
+    solver: Box<dyn LinearSolver>,
     /// Levenberg-Marquardt specific parameters
     params: LevenParams,
     /// Observers for the optimizer
@@ -56,6 +57,13 @@ pub struct LevenMarquardt {
     lambda: dtype,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
+}
+
+impl LevenMarquardt {
+    /// Set the linear solver to use for solving the linear system
+    pub fn set_solver(&mut self, solver: impl LinearSolver + 'static) {
+        self.solver = Box::new(solver);
+    }
 }
 
 impl Optimizer for LevenMarquardt {
