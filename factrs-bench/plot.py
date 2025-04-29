@@ -91,14 +91,16 @@ setup_plot()
 # paper sized
 # figsize = (252.0 / 72.27 + 0.5, 2.25)
 # legend_opts = {
+#     "ncol": 3,
 #     "columnspacing": 3.65,
 #     "bbox_to_anchor": (0.125, 1.17),
 # }
 # readme sized
-figsize = (4, 1.5)
+figsize = (5, 1.5)
 legend_opts = {
-    "columnspacing": 3.75,
-    "bbox_to_anchor": (0.125, 1.3),
+    "ncol": 4,
+    "columnspacing": 3.4,
+    "bbox_to_anchor": (0.10, 1.3),
 }
 
 fig, ax = plt.subplots(1, 1, figsize=figsize, layout="constrained")
@@ -124,7 +126,6 @@ ax.set_yticks([0, 200, 400, 600, 1000, 1600], [0, 200, 400, 600, 1000, 1600])
 
 ax.legend().set_visible(False)
 leg = fig.legend(
-    ncol=3,
     borderpad=0.2,
     labelspacing=0.15,
     loc="outside upper left",
