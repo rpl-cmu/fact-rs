@@ -6,6 +6,7 @@ rustPlatform.buildRustPackage {
   pname = cargoTOML.package.name;
   version = cargoTOML.package.version;
 
+  # Needed because of factrs-typetag
   src = lib.fileset.toSource {
     root = ./.;
     fileset = lib.fileset.gitTrackedWith {
