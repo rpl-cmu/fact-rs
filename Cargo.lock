@@ -1202,6 +1202,7 @@ dependencies = [
 [[package]]
 name = "factrs-typetag"
 version = "0.2.0"
+source = "git+https://github.com/contagon/factrs-typetag?rev=24cecc4c45bd68cc2618588567d2658b0ad49a10#24cecc4c45bd68cc2618588567d2658b0ad49a10"
 dependencies = [
  "erased-serde",
  "factrs-typetag-impl",
@@ -1213,6 +1214,7 @@ dependencies = [
 [[package]]
 name = "factrs-typetag-impl"
 version = "0.2.0"
+source = "git+https://github.com/contagon/factrs-typetag?rev=24cecc4c45bd68cc2618588567d2658b0ad49a10#24cecc4c45bd68cc2618588567d2658b0ad49a10"
 dependencies = [
  "proc-macro2",
  "quote",
