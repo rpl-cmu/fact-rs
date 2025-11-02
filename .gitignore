@@ -9,6 +9,7 @@ perf*
 .cache
 .direnv
 .envrc
+result
 
 factrs-proc/target
 

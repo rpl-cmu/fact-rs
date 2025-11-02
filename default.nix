@@ -11,5 +11,7 @@
       pkgs.clippy
       pkgs.rustfmt
       pkgs.rust-analyzer
+      pkgs.npins
+      pkgs.git
     ]);
 })
