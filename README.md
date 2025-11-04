@@ -24,7 +24,7 @@ There's a number of examples found in the [examples](/examples/) folder, includi
 
 To run a simple pose graph optimization, simply clone this repository and run,
 ```bash
-cargo run --release --example g20 ./examples/data/M3500.g20
+cargo run --release --example g2o ./examples/data/M3500.g2o
 ```
 to visualize the optimization steps with [rerun](https://rerun.io) simply add `--features rerun` to the above command.
 
