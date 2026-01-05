@@ -19,7 +19,7 @@ use factrs::{
     linalg::{Const, ForwardProp, Numeric, NumericalDiff, VectorX},
     residuals::Residual1,
     traits::*,
-    variables::{VectorVar2, SE2},
+    variables::{SE2, VectorVar2},
 };
 
 #[derive(Clone, Debug)]

@@ -18,7 +18,7 @@ use crate::{
 ///
 /// ```
 /// use factrs::{
-///     linalg::{vectorx, DiffResult, NumericalDiff, VectorX},
+///     linalg::{DiffResult, NumericalDiff, VectorX, vectorx},
 ///     traits::*,
 ///     variables::SO2,
 /// };

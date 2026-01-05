@@ -1,12 +1,12 @@
 use std::{default::Default, fmt, fmt::Write, iter::IntoIterator, marker::PhantomData};
 
 use foldhash::fast::RandomState;
-use indexmap::{map::Entry, IndexMap};
+use indexmap::{IndexMap, map::Entry};
 use pad_adapter::PadAdapter;
 
 use super::{
-    symbol::{DefaultSymbolHandler, KeyFormatter},
     Key, Symbol, TypedSymbol,
+    symbol::{DefaultSymbolHandler, KeyFormatter},
 };
 use crate::{
     linear::LinearValues,

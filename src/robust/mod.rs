@@ -88,11 +88,7 @@ impl RobustCost for L1 {
     }
 
     fn weight(&self, d2: dtype) -> dtype {
-        if d2 <= 1e-3 {
-            1.0
-        } else {
-            1.0 / d2.sqrt()
-        }
+        if d2 <= 1e-3 { 1.0 } else { 1.0 / d2.sqrt() }
     }
 }
 
@@ -128,11 +124,7 @@ impl RobustCost for Huber {
 
     fn weight(&self, d2: dtype) -> dtype {
         let dabs = d2.sqrt();
-        if dabs <= self.k {
-            1.0
-        } else {
-            self.k / dabs
-        }
+        if dabs <= self.k { 1.0 } else { self.k / dabs }
     }
 }
 

@@ -1,6 +1,6 @@
 use factrs::{
     assign_symbols,
-    core::{BetweenResidual, GaussNewton, Graph, Huber, PriorResidual, Values, SO2},
+    core::{BetweenResidual, GaussNewton, Graph, Huber, PriorResidual, SO2, Values},
     fac,
     traits::*,
 };

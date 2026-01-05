@@ -2,7 +2,7 @@ use core::fmt;
 
 use factrs::{
     dtype,
-    linalg::{vectorx, ForwardProp, Numeric, VectorX},
+    linalg::{ForwardProp, Numeric, VectorX, vectorx},
     residuals::Residual1,
     traits::Variable,
     variables::SE2,

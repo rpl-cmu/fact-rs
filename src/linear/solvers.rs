@@ -1,9 +1,9 @@
 use std::ops::Mul;
 
 use faer::{
-    linalg::solvers::Solve,
-    sparse::{linalg::solvers, SparseColMatRef},
     Mat, MatRef,
+    linalg::solvers::Solve,
+    sparse::{SparseColMatRef, linalg::solvers},
 };
 
 use crate::dtype;
@@ -15,7 +15,7 @@ pub trait LinearSolver {
     /// This will be used by Cholesky to solve A^T A and by Levenberg-Marquardt
     /// to solve J^T J
     fn solve_symmetric(&mut self, a: SparseColMatRef<usize, dtype>, b: MatRef<dtype>)
-        -> Mat<dtype>;
+    -> Mat<dtype>;
 
     /// Solve a least squares problem
     ///
