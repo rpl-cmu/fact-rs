@@ -64,7 +64,7 @@ macro_rules! forward_maker {
                         .as_slice(),
                 );
 
-                let mut eps = MatrixX::zeros(res.len(), N::USIZE);
+                let mut eps = MatrixX::zeros(res.len(), N::DIM);
                 eps.copy_from(&eps1);
 
                 DiffResult {

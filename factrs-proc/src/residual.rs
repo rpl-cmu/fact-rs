@@ -63,11 +63,11 @@ pub fn mark(mut item: ItemImpl) -> TokenStream2 {
         #typetag
         impl #generics factrs::residuals::Residual for #self_ty #where_clause {
             fn dim_in(&self) -> usize {
-                <<Self as #residual_trait>::DimIn as factrs::linalg::DimName>::USIZE
+                <<Self as #residual_trait>::DimIn as factrs::linalg::DimName>::DIM
             }
 
             fn dim_out(&self) -> usize {
-                <<Self as  #residual_trait>::DimOut as factrs::linalg::DimName>::USIZE
+                <<Self as  #residual_trait>::DimOut as factrs::linalg::DimName>::DIM
             }
 
             fn residual(&self, values: &factrs::containers::Values, keys: &[factrs::containers::Key]) -> factrs::linalg::VectorX {

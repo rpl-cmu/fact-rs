@@ -54,7 +54,7 @@ impl Values {
 
     /// Returns an [std::collections::hash_map::Entry] from the underlying
     /// HashMap.
-    pub fn entry(&mut self, key: impl Symbol) -> Entry<Key, Box<dyn VariableSafe>> {
+    pub fn entry(&mut self, key: impl Symbol) -> Entry<'_, Key, Box<dyn VariableSafe>> {
         self.values.entry(key.into())
     }
 

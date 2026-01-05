@@ -31,7 +31,7 @@ impl<T: Numeric> SE3<T> {
         &self.rot
     }
 
-    pub fn xyz(&self) -> VectorView3<T> {
+    pub fn xyz(&self) -> VectorView3<'_, T> {
         self.xyz.as_view()
     }
 }
