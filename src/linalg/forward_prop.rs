@@ -1,8 +1,8 @@
 use paste::paste;
 
 use super::{
-    dual::{DualAllocator, DualVector},
     AllocatorBuffer, Diff, MatrixDim,
+    dual::{DualAllocator, DualVector},
 };
 use crate::{
     linalg::{Const, DefaultAllocator, DiffResult, DimName, Dyn, MatrixX, VectorDim, VectorX},
@@ -21,7 +21,7 @@ use crate::{
 ///
 /// ```
 /// use factrs::{
-///     linalg::{vectorx, Const, DiffResult, ForwardProp, Numeric, VectorX},
+///     linalg::{Const, DiffResult, ForwardProp, Numeric, VectorX, vectorx},
 ///     traits::*,
 ///     variables::SO2,
 /// };
@@ -64,7 +64,7 @@ macro_rules! forward_maker {
                         .as_slice(),
                 );
 
-                let mut eps = MatrixX::zeros(res.len(), N::USIZE);
+                let mut eps = MatrixX::zeros(res.len(), N::DIM);
                 eps.copy_from(&eps1);
 
                 DiffResult {

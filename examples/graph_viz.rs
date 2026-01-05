@@ -2,7 +2,7 @@
 use std::net::{SocketAddr, SocketAddrV4};
 
 use factrs::{
-    core::{assign_symbols, fac, BetweenResidual, Graph, PriorResidual, SE2},
+    core::{BetweenResidual, Graph, PriorResidual, SE2, assign_symbols, fac},
     traits::Variable,
 };
 

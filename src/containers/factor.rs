@@ -13,7 +13,7 @@ use crate::{
     linear::LinearFactor,
     noise::{NoiseModel, UnitNoise},
     residuals::Residual,
-    robust::{RobustCost, L2},
+    robust::{L2, RobustCost},
 };
 
 /// Main structure to represent a factor in the graph.

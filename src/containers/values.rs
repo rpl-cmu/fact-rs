@@ -1,12 +1,12 @@
 use std::{default::Default, fmt, fmt::Write, iter::IntoIterator, marker::PhantomData};
 
 use foldhash::fast::RandomState;
-use indexmap::{map::Entry, IndexMap};
+use indexmap::{IndexMap, map::Entry};
 use pad_adapter::PadAdapter;
 
 use super::{
-    symbol::{DefaultSymbolHandler, KeyFormatter},
     Key, Symbol, TypedSymbol,
+    symbol::{DefaultSymbolHandler, KeyFormatter},
 };
 use crate::{
     linear::LinearValues,
@@ -54,7 +54,7 @@ impl Values {
 
     /// Returns an [std::collections::hash_map::Entry] from the underlying
     /// HashMap.
-    pub fn entry(&mut self, key: impl Symbol) -> Entry<Key, Box<dyn VariableSafe>> {
+    pub fn entry(&mut self, key: impl Symbol) -> Entry<'_, Key, Box<dyn VariableSafe>> {
         self.values.entry(key.into())
     }
 

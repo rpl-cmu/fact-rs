@@ -51,9 +51,9 @@ mod test {
     use super::*;
     use crate::{
         containers::Values,
-        linalg::{vectorx, DefaultAllocator, Diff, DualAllocator, NumericalDiff},
+        linalg::{DefaultAllocator, Diff, DualAllocator, NumericalDiff, vectorx},
         symbols::X,
-        variables::{VectorVar3, SE3, SO3},
+        variables::{SE3, SO3, VectorVar3},
     };
 
     #[cfg(not(feature = "f32"))]

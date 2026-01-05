@@ -2,8 +2,8 @@
 // Misc imports
 use nalgebra::{self as na, OVector};
 pub use nalgebra::{
-    allocator::Allocator, dmatrix as matrixx, dvector as vectorx, ComplexField, Const,
-    DefaultAllocator, Dim, DimName, Dyn, RealField,
+    ComplexField, Const, DefaultAllocator, Dim, DimName, Dyn, RealField, allocator::Allocator,
+    dmatrix as matrixx, dvector as vectorx,
 };
 pub use simba::scalar::SupersetOf;
 

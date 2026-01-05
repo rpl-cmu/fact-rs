@@ -1,14 +1,14 @@
 use std::collections::HashSet;
 
 use rerun::{
-    components::RotationQuat, Arrows2D, Arrows3D, AsComponents, GraphEdges, GraphNodes, Points2D,
-    Points3D, Quaternion, Rotation3D, Transform3D, Vec2D, Vec3D,
+    Arrows2D, Arrows3D, AsComponents, GraphEdges, GraphNodes, Points2D, Points3D, Quaternion,
+    Rotation3D, Transform3D, Vec2D, Vec3D, components::RotationQuat,
 };
 
 use crate::{
     containers::{DefaultSymbolHandler, Graph, GraphFormatter, KeyFormatter, Values},
     optimizers::OptObserver,
-    variables::{MatrixLieGroup, VariableDtype, VectorVar2, VectorVar3, SE2, SE3, SO2, SO3},
+    variables::{MatrixLieGroup, SE2, SE3, SO2, SO3, VariableDtype, VectorVar2, VectorVar3},
 };
 
 // ------------------------- 2D Objects ------------------------- //

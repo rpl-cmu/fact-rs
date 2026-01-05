@@ -67,7 +67,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         4 => {}
         _ => {
-            println!("Usage: {} <g2o file> <optimizer: [gauss|leven|gnc] = gauss> <vis: [points|arrows] = arrows>", args[0]);
+            println!(
+                "Usage: {} <g2o file> <optimizer: [gauss|leven|gnc] = gauss> <vis: [points|arrows] = arrows>",
+                args[0]
+            );
             return Ok(());
         }
     }

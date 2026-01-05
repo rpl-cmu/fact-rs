@@ -1,4 +1,4 @@
-use nalgebra::{allocator::Allocator, Const};
+use nalgebra::{Const, allocator::Allocator};
 
 use super::{Dim, RealField, SupersetOf};
 use crate::dtype;
@@ -16,9 +16,7 @@ pub trait DualAllocator<N: Dim>:
 {
 }
 
-impl<
-        N: Dim,
-        T: Allocator<N> + Allocator<Const<1>, N> + Allocator<N, Const<1>> + Allocator<N, N>,
-    > DualAllocator<N> for T
+impl<N: Dim, T: Allocator<N> + Allocator<Const<1>, N> + Allocator<N, Const<1>> + Allocator<N, N>>
+    DualAllocator<N> for T
 {
 }

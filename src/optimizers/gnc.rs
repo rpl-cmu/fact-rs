@@ -8,7 +8,7 @@ use super::{
 };
 use crate::{
     containers::{GraphOrder, ValuesOrder},
-    core::{Graph, Values, L2},
+    core::{Graph, L2, Values},
     dtype,
     linalg::VectorViewX,
     linear::{CholeskySolver, LinearSolver},

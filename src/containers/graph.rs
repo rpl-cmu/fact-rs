@@ -106,11 +106,11 @@ impl Graph {
         }
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Factor> {
+    pub fn iter(&self) -> std::slice::Iter<'_, Factor> {
         self.factors.iter()
     }
 
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<Factor> {
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Factor> {
         self.factors.iter_mut()
     }
 }
