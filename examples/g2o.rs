@@ -4,7 +4,7 @@ use std::{env, time::Instant};
 use factrs::rerun::RerunObserver;
 use factrs::{
     core::{GaussNewton, LevenMarquardt, SE2, SE3},
-    optimizers::{BaseOptParams, GncGemanMcClure, GncParams, GraduatedNonConvexity, LevenParams},
+    optimizers::{GncGemanMcClure, GncParams, GraduatedNonConvexity},
     traits::Optimizer,
     utils::load_g20,
 };

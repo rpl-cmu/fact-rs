@@ -1,11 +1,11 @@
-use super::{Accel, Gravity, Gyro, ImuState, delta::ImuDelta};
+use super::{delta::ImuDelta, Accel, Gravity, Gyro, ImuState};
 use crate::{
     containers::{Factor, FactorBuilder, Symbol, TypedSymbol},
     dtype,
     linalg::{Const, ForwardProp, Matrix, Matrix3, VectorX},
     noise::GaussianNoise,
     residuals::Residual6,
-    variables::{ImuBias, MatrixLieGroup, SE3, SO3, Variable, VectorVar3},
+    variables::{ImuBias, MatrixLieGroup, Variable, VectorVar3, SE3, SO3},
 };
 // ------------------------- Covariances ------------------------- //
 
@@ -238,7 +238,8 @@ impl ImuPreintegrator {
         B2: TypedSymbol<ImuBias>,
     {
         // Create noise from our covariance matrix
-        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view());
+        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view())
+            .expect("IMU preintegration covariance must be positive definite");
         // Create the residual
         let res = ImuPreintegrationResidual { delta: self.delta };
         // Build the factor
@@ -269,7 +270,8 @@ impl ImuPreintegrator {
         B2: Symbol,
     {
         // Create noise from our covariance matrix
-        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view());
+        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view())
+            .expect("IMU preintegration covariance must be positive definite");
         // Create the residual
         let res = ImuPreintegrationResidual { delta: self.delta };
         // Build the factor
@@ -357,7 +359,7 @@ mod test {
         linalg::Vector3,
         optimizers::{GaussNewton, Optimizer},
         residuals::{Accel, Gyro, PriorResidual},
-        variables::{ImuBias, SE3, VectorVar3},
+        variables::{ImuBias, VectorVar3, SE3},
     };
 
     assign_symbols!(X: SE3; V: VectorVar3; B: ImuBias);

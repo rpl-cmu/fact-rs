@@ -106,24 +106,23 @@ impl<const N: usize> GaussianNoise<N> {
     }
 
     /// Create a Gaussian noise from a covariance matrix.
-    pub fn from_matrix_cov(cov: MatrixView<N, N>) -> Self {
-        let sqrt_inf = cov
-            .try_inverse()
-            .expect("Matrix inversion failed when creating sqrt covariance.")
-            .cholesky()
-            .expect("Cholesky failed when creating sqrt information.")
-            .l()
-            .transpose();
-        Self { sqrt_inf }
+    pub fn from_matrix_cov(cov: MatrixView<N, N>) -> Option<Self> {
+        let sqrt_inf = cov.try_inverse()?.cholesky()?.l().transpose();
+        Some(Self { sqrt_inf })
     }
 
     /// Create a Gaussian noise from an information matrix.
-    pub fn from_matrix_inf(inf: MatrixView<N, N>) -> Self {
-        let sqrt_inf = inf
-            .cholesky()
-            .expect("Cholesky failed when creating sqrt information.")
-            .l()
-            .transpose();
+    pub fn from_matrix_inf(inf: MatrixView<N, N>) -> Option<Self> {
+        let sqrt_inf = inf.cholesky()?.l().transpose();
+        Some(Self { sqrt_inf })
+    }
+
+    /// Create a Gaussian noise from an upper-triangular sqrt information
+    /// matrix.
+    ///
+    /// The sqrt information matrix R should satisfy `info = R^T * R`. This
+    /// constructor uses R directly without performing Cholesky decomposition.
+    pub fn from_matrix_sqrt_inf(sqrt_inf: Matrix<N, N>) -> Self {
         Self { sqrt_inf }
     }
 }
