@@ -28,7 +28,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
 
     for line in BufReader::new(file).lines() {
         let line = line.expect("Missing line");
-        let parts = line.split(" ").collect::<Vec<&str>>();
+        let parts = line.split_whitespace().collect::<Vec<&str>>();
         match parts[0] {
             "VERTEX_SE2" => {
                 let id = parts[1].parse::<u32>().expect("Failed to parse g20");
@@ -94,7 +94,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                 let key = X(id);
 
                 // Add prior on whatever the first variable is
-                if values.len() == 1 {
+                if values.is_empty() {
                     let noise =
                         GaussianNoise::<6>::from_diag_covs(1e-6, 1e-6, 1e-6, 1e-4, 1e-4, 1e-4);
                     let factor = fac![PriorResidual::new(var.clone()), key, noise];

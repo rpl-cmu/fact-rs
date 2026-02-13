@@ -17,6 +17,7 @@ pub struct LevenParams {
     pub lambda_min: dtype,
     pub lambda_max: dtype,
     pub lambda_factor: dtype,
+    pub min_model_fidelity: dtype,
     pub diagonal_damping: bool,
     pub base: BaseOptParams,
 }
@@ -26,6 +27,7 @@ impl Default for LevenParams {
         Self {
             lambda_min: 1e-10,
             lambda_max: 1e5,
+            min_model_fidelity: 1e-3,
             lambda_factor: 10.0,
             diagonal_damping: true,
             base: Default::default(),
@@ -112,7 +114,7 @@ impl Optimizer for LevenMarquardt {
                 .sparsity_pattern(ValuesOrder::from_values(values)),
         );
 
-        vec!["   Lambda   "]
+        vec!["   Lambda   ", "  Fidelity  "]
     }
 
     // TODO: More sophisticated stopping criteria based on magnitude of the gradient
@@ -154,7 +156,9 @@ impl Optimizer for LevenMarquardt {
         let b = j.as_ref().transpose().mul(&r);
 
         let mut dx = LinearValues::zero_from_order(order.clone());
-        let old_error = linear_graph.error(&dx);
+        let old_lin_error = linear_graph.error(&dx);
+        let old_error = self.graph.error(&values);
+        let mut model_fidelity;
 
         loop {
             // Make Ax = b
@@ -180,10 +184,19 @@ impl Optimizer for LevenMarquardt {
             );
 
             // Update our cost
-            let curr_error = linear_graph.error(&dx);
+            let curr_lin_error = linear_graph.error(&dx);
 
-            if curr_error < old_error {
-                break;
+            if curr_lin_error < old_lin_error {
+                let mut new_values = values.clone();
+                new_values.oplus_mut(&dx);
+                let curr_error = self.graph.error(&new_values);
+
+                // Check ratio of error changes -
+                // if too small, our linear model isn't representing the nonlinear model well
+                model_fidelity = (curr_error - old_error) / (curr_lin_error - old_lin_error);
+                if model_fidelity > self.params.min_model_fidelity {
+                    break;
+                }
             }
 
             self.lambda *= self.params.lambda_factor;
@@ -199,7 +212,10 @@ impl Optimizer for LevenMarquardt {
             self.lambda = self.params.lambda_min;
         }
 
-        Ok((values, format!("{:^12.4e} |", self.lambda)))
+        Ok((
+            values,
+            format!("{:^12.4e} | {:^12.4e} |", self.lambda, model_fidelity),
+        ))
     }
 }
 

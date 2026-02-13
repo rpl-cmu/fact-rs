@@ -1,12 +1,10 @@
-#[cfg(feature = "rerun")]
-use std::net::{SocketAddr, SocketAddrV4};
 use std::{env, time::Instant};
 
 #[cfg(feature = "rerun")]
 use factrs::rerun::RerunObserver;
 use factrs::{
     core::{GaussNewton, LevenMarquardt, SE2, SE3},
-    optimizers::{GncGemanMcClure, GncParams, GraduatedNonConvexity},
+    optimizers::{BaseOptParams, GncGemanMcClure, GncParams, GraduatedNonConvexity, LevenParams},
     traits::Optimizer,
     utils::load_g20,
 };
@@ -18,9 +16,8 @@ use rerun::{Arrows2D, Arrows3D, Points2D, Points3D};
 #[cfg(feature = "rerun")]
 fn rerun_init(opt: &mut impl Optimizer, dim: &str, obj: &str) {
     // Setup the rerun & the callback
-    let socket = SocketAddrV4::new("0.0.0.0".parse().unwrap(), 9876);
     let rec = rerun::RecordingStreamBuilder::new("factrs-g2o-example")
-        .connect_tcp_opts(SocketAddr::V4(socket), rerun::default_flush_timeout())
+        .connect_grpc()
         .unwrap();
 
     // Log the graph
