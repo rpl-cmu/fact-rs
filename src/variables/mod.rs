@@ -60,6 +60,9 @@ pub use so3::SO3;
 mod se3;
 pub use se3::SE3;
 
+mod se23;
+pub use se23::SE23;
+
 mod vector;
 pub use vector::{
     VectorVar, VectorVar1, VectorVar2, VectorVar3, VectorVar4, VectorVar5, VectorVar6,
