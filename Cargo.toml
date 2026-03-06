@@ -89,6 +89,7 @@ nalgebra = { version = "0.33.2", features = ["compare"] }
 serde_json = { version = "1.0.135" }
 
 [patch.crates-io]
+# Uncomment if you want to use local version of factrs-typetag for development
 # factrs-typetag = { path = "./factrs-typetag" }
 
 [profile.bench]
