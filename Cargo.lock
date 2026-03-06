@@ -2061,6 +2061,8 @@ dependencies = [
 [[package]]
 name = "factrs-typetag"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33f6070e89c07f4c26812d03eadd19f1e8803c0747c98cfe034b648199a4a660"
 dependencies = [
  "erased-serde",
  "factrs-typetag-impl",
@@ -2072,6 +2074,8 @@ dependencies = [
 [[package]]
 name = "factrs-typetag-impl"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3432048835318671f54e07a7d865c155655d5ad6d5a067933b1d4d9a367f5f9e"
 dependencies = [
  "proc-macro2",
  "quote",
