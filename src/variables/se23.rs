@@ -5,7 +5,7 @@ use crate::{
     dtype,
     linalg::{
         AllocatorBuffer, Const, DefaultAllocator, DimName, DualAllocator, DualVector, Matrix3,
-        Matrix3x9, Matrix5, Matrix9, MatrixView, Numeric, SupersetOf, Vector3, Vector6, Vector9,
+        Matrix3x9, Matrix5, Matrix9, MatrixView, Numeric, SupersetOf, Vector3, Vector9,
         VectorView3, VectorView9, VectorViewX, VectorX,
     },
     variables::{MatrixLieGroup, SO3, Variable},
@@ -200,20 +200,17 @@ impl<T: Numeric> MatrixLieGroup for SE23<T> {
     }
 
     fn vee(xi: MatrixView<5, 5, T>) -> Vector9<T> {
-        // This bypasses the missing macros for Vector9, but probably not ideal
-        let rotuvw = Vector6::new(
+        let xi = Vector9::from_column_slice(&[
+            xi[(2, 1)],
+            xi[(0, 2)],
+            xi[(1, 0)],
             xi[(0, 3)],
             xi[(1, 3)],
             xi[(2, 3)],
-            xi[(0, 3)],
-            xi[(1, 3)],
-            xi[(2, 3)],
-        );
-        let xyz = Vector3::new(xi[(0, 4)], xi[(1, 4)], xi[(2, 4)]);
-
-        let mut xi = Vector9::zeros();
-        xi.as_mut_slice()[0..6].copy_from_slice(rotuvw.as_slice());
-        xi.as_mut_slice()[6..9].copy_from_slice(xyz.as_slice());
+            xi[(0, 4)],
+            xi[(1, 4)],
+            xi[(2, 4)],
+        ]);
 
         xi
     }
