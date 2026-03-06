@@ -22,6 +22,8 @@ pub type Vector3<T = dtype> = na::SVector<T, 3>;
 pub type Vector4<T = dtype> = na::SVector<T, 4>;
 pub type Vector5<T = dtype> = na::SVector<T, 5>;
 pub type Vector6<T = dtype> = na::SVector<T, 6>;
+pub type Vector7<T = dtype> = na::SVector<T, 7>;
+pub type Vector8<T = dtype> = na::SVector<T, 8>;
 pub type Vector9<T = dtype> = na::SVector<T, 9>;
 
 // Matrices
@@ -33,6 +35,18 @@ pub type Matrix3<T = dtype> = na::Matrix3<T>;
 pub type Matrix4<T = dtype> = na::Matrix4<T>;
 pub type Matrix5<T = dtype> = na::Matrix5<T>;
 pub type Matrix6<T = dtype> = na::Matrix6<T>;
+pub type Matrix7<T = dtype> = na::Matrix<
+    T,
+    Const<7>,
+    Const<7>,
+    <na::DefaultAllocator as Allocator<Const<7>, Const<7>>>::Buffer<T>,
+>;
+pub type Matrix8<T = dtype> = na::Matrix<
+    T,
+    Const<8>,
+    Const<8>,
+    <na::DefaultAllocator as Allocator<Const<8>, Const<8>>>::Buffer<T>,
+>;
 pub type Matrix9<T = dtype> = na::Matrix<
     T,
     Const<9>,
@@ -47,6 +61,24 @@ pub type Matrix1x3<T = dtype> = na::Matrix1x3<T>;
 pub type Matrix1x4<T = dtype> = na::Matrix1x4<T>;
 pub type Matrix1x5<T = dtype> = na::Matrix1x5<T>;
 pub type Matrix1x6<T = dtype> = na::Matrix1x6<T>;
+pub type Matrix1x7<T = dtype> = na::Matrix<
+    T,
+    Const<1>,
+    Const<7>,
+    <na::DefaultAllocator as Allocator<Const<1>, Const<7>>>::Buffer<T>,
+>;
+pub type Matrix1x8<T = dtype> = na::Matrix<
+    T,
+    Const<1>,
+    Const<8>,
+    <na::DefaultAllocator as Allocator<Const<1>, Const<8>>>::Buffer<T>,
+>;
+pub type Matrix1x9<T = dtype> = na::Matrix<
+    T,
+    Const<1>,
+    Const<9>,
+    <na::DefaultAllocator as Allocator<Const<1>, Const<9>>>::Buffer<T>,
+>;
 
 // two rows
 pub type Matrix2xX<T = dtype> = na::Matrix2xX<T>;
@@ -54,6 +86,24 @@ pub type Matrix2x3<T = dtype> = na::Matrix2x3<T>;
 pub type Matrix2x4<T = dtype> = na::Matrix2x4<T>;
 pub type Matrix2x5<T = dtype> = na::Matrix2x5<T>;
 pub type Matrix2x6<T = dtype> = na::Matrix2x6<T>;
+pub type Matrix2x7<T = dtype> = na::Matrix<
+    T,
+    Const<2>,
+    Const<7>,
+    <na::DefaultAllocator as Allocator<Const<2>, Const<7>>>::Buffer<T>,
+>;
+pub type Matrix2x8<T = dtype> = na::Matrix<
+    T,
+    Const<2>,
+    Const<8>,
+    <na::DefaultAllocator as Allocator<Const<2>, Const<8>>>::Buffer<T>,
+>;
+pub type Matrix2x9<T = dtype> = na::Matrix<
+    T,
+    Const<2>,
+    Const<9>,
+    <na::DefaultAllocator as Allocator<Const<2>, Const<9>>>::Buffer<T>,
+>;
 
 // three rows
 pub type Matrix3xX<T = dtype> = na::Matrix3xX<T>;
@@ -61,6 +111,18 @@ pub type Matrix3x2<T = dtype> = na::Matrix3x2<T>;
 pub type Matrix3x4<T = dtype> = na::Matrix3x4<T>;
 pub type Matrix3x5<T = dtype> = na::Matrix3x5<T>;
 pub type Matrix3x6<T = dtype> = na::Matrix3x6<T>;
+pub type Matrix3x7<T = dtype> = na::Matrix<
+    T,
+    Const<3>,
+    Const<7>,
+    <na::DefaultAllocator as Allocator<Const<3>, Const<7>>>::Buffer<T>,
+>;
+pub type Matrix3x8<T = dtype> = na::Matrix<
+    T,
+    Const<3>,
+    Const<8>,
+    <na::DefaultAllocator as Allocator<Const<3>, Const<8>>>::Buffer<T>,
+>;
 pub type Matrix3x9<T = dtype> = na::Matrix<
     T,
     Const<3>,
@@ -118,6 +180,8 @@ pub type VectorView3<'a, T = dtype> = na::VectorView<'a, T, Const<3>>;
 pub type VectorView4<'a, T = dtype> = na::VectorView<'a, T, Const<4>>;
 pub type VectorView5<'a, T = dtype> = na::VectorView<'a, T, Const<5>>;
 pub type VectorView6<'a, T = dtype> = na::VectorView<'a, T, Const<6>>;
+pub type VectorView7<'a, T = dtype> = na::VectorView<'a, T, Const<7>>;
+pub type VectorView8<'a, T = dtype> = na::VectorView<'a, T, Const<8>>;
 pub type VectorView9<'a, T = dtype> = na::VectorView<'a, T, Const<9>>;
 
 // Generic, taking in sizes with Const
