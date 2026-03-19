@@ -496,7 +496,7 @@ where
     for<'a> R: FromIterator<&'a V>,
 {
     fn on_step(&self, values: &Values, idx: f64) {
-        self.rec.set_time_seconds("stable_time", idx);
+        self.rec.set_time_sequence("stable_time", idx as i64);
         let sol: R = values.filter::<V>().collect();
         self.rec
             .log(self.topic.clone(), &sol)
