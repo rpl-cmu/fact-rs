@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     assign_symbols,
-    containers::{FactorBuilder, Graph, Values},
+    containers::{Graph, Values},
     dtype, fac,
     linalg::{Matrix3, Matrix6, Vector3},
     noise::GaussianNoise,
@@ -201,9 +201,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
 
                 let key1 = X(id_prev);
                 let key2 = X(id_curr);
-                let factor = FactorBuilder::new2(BetweenResidual::new(var), key1, key2)
-                    .noise(noise)
-                    .build();
+                let factor = fac![BetweenResidual::new(var), (key1, key2), noise];
                 graph.add_factor(factor);
             }
 
