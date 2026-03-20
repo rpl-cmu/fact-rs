@@ -403,8 +403,8 @@ mod tests {
         )
         .diff;
 
-        println!("got: {}", got);
-        println!("exp: {}", exp);
+        println!("got: {got}");
+        println!("exp: {exp}");
         assert_matrix_eq!(got, exp, comp = abs, tol = TOL);
     }
 }

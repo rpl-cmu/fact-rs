@@ -137,6 +137,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(_) => println!("Optimization converged!"),
         Err(_) => println!("Optimization failed!"),
     }
-    println!("Optimization took: {:?}", duration);
+    println!("Optimization took: {duration:?}");
     Ok(())
 }

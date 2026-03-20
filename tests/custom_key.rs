@@ -45,7 +45,7 @@ impl DoubleCharHandler {
     }
 
     pub fn format(f: &mut dyn Write, chr1: char, chr2: char, idx: u32) -> fmt::Result {
-        write!(f, "{}{}{}", chr1, chr2, idx)
+        write!(f, "{chr1}{chr2}{idx}")
     }
 }
 

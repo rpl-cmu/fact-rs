@@ -163,8 +163,8 @@ mod test {
         let value = value.as_ref().into_nalgebra().clone_owned();
         let diff = diff.to_dense().as_ref().into_nalgebra().clone_owned();
 
-        println!("Value: {}", value);
-        println!("Diff: {}", diff);
+        println!("Value: {value}");
+        println!("Diff: {diff}");
 
         // Check the residual
         assert_matrix_eq!(b1, value.rows(0, 2), comp = float);

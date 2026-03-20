@@ -40,7 +40,7 @@ pub fn mark(item: ItemImpl) -> TokenStream2 {
         1 => {
             if let GenericParam::Const(_) = item.generics.params.first().unwrap() {
                 for i in 1usize..=32 {
-                    let name_str = format!("{}<{}>", name, i);
+                    let name_str = format!("{name}<{i}>");
                     expanded.extend(quote!(
                         typetag::__private::inventory::submit! {
                             <dyn factrs::noise::NoiseModel>::typetag_register(

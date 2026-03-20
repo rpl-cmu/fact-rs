@@ -41,7 +41,7 @@ mod ser_de {
         let trait_object = &DoubleCovariance::<2> as &dyn NoiseModel;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"DoubleCovariance<2>"}"#;
-        println!("json: {}", json);
+        println!("json: {json}");
         assert_eq!(json, expected);
     }
 

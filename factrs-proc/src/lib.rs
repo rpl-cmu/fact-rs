@@ -1,5 +1,3 @@
-#![allow(clippy::uninlined_format_args)]
-
 use syn::{parse_macro_input, ItemImpl};
 
 mod fac;

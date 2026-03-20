@@ -232,12 +232,14 @@ impl<KF: KeyFormatter> fmt::Display for ValuesFormatter<'_, KF> {
             let mut pad = PadAdapter::new(f);
             for (key, value) in self.values.iter() {
                 KF::fmt(&mut pad, *key)?;
+                #[allow(clippy::uninlined_format_args)]
                 writeln!(pad, ": {:#.p$},", value, p = precision)?;
             }
         } else {
             f.write_str("Values { ")?;
             for (key, value) in self.values.iter() {
                 KF::fmt(f, *key)?;
+                #[allow(clippy::uninlined_format_args)]
                 write!(f, ": {:.p$}, ", value, p = precision)?;
             }
         }
@@ -253,12 +255,14 @@ impl<KF: KeyFormatter> fmt::Debug for ValuesFormatter<'_, KF> {
             let mut pad = PadAdapter::new(f);
             for (key, value) in self.values.iter() {
                 KF::fmt(&mut pad, *key)?;
+                #[allow(clippy::uninlined_format_args)]
                 writeln!(pad, ": {:#.p$?},", value, p = precision)?;
             }
         } else {
             f.write_str("Values { ")?;
             for (key, value) in self.values.iter() {
                 KF::fmt(f, *key)?;
+                #[allow(clippy::uninlined_format_args)]
                 write!(f, ": {:.p$?}, ", value, p = precision)?;
             }
         }

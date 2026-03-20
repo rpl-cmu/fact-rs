@@ -15,11 +15,11 @@ fn main() {
     println!("------ Serializing Values ------");
 
     let serialized = serde_json::to_string_pretty(&values).unwrap();
-    println!("serialized = {}", serialized);
+    println!("serialized = {serialized}");
 
     // Convert the JSON string back to a Point.
     let deserialized: Values = serde_json::from_str(&serialized).unwrap();
-    println!("deserialized = {:#}", deserialized);
+    println!("deserialized = {deserialized:#}");
 
     // ------------------------- Serialize graph ------------------------- //
     let prior = PriorResidual::new(x);
@@ -35,8 +35,8 @@ fn main() {
     println!("\n\n------ Serializing Graph ------");
 
     let serialized = serde_json::to_string_pretty(&graph).unwrap();
-    println!("serialized = {}", serialized);
+    println!("serialized = {serialized}");
 
     let deserialized: Graph = serde_json::from_str(&serialized).unwrap();
-    println!("deserialized = {:#?}", deserialized);
+    println!("deserialized = {deserialized:#?}");
 }

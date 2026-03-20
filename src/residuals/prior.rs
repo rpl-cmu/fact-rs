@@ -92,8 +92,8 @@ mod test {
         };
         let jac_n = NumericalDiff::<PWR>::jacobian_1(f, &x1).diff;
 
-        eprintln!("jac: {:.3}", jac);
-        eprintln!("jac_n: {:.3}", jac_n);
+        eprintln!("jac: {jac:.3}");
+        eprintln!("jac_n: {jac_n:.3}");
 
         assert_matrix_eq!(jac, jac_n, comp = abs, tol = TOL);
     }

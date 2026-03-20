@@ -54,7 +54,7 @@ mod ser_de {
         let trait_object = &XPrior::new(1.2) as &dyn Residual;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"XPrior","x":1.2}"#;
-        println!("json: {}", json);
+        println!("json: {json}");
         assert_eq!(json, expected);
     }
 

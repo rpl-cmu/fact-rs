@@ -413,7 +413,7 @@ impl<'g, KF: KeyFormatter> From<&GraphFormatter<'g, KF>> for (GraphNodes, GraphE
         // Not sure if this is officially supported, but missing nodes leads to dots for
         // nodes
         // So we purposefully don't put nodes into the graph for the factors
-        // let nodes = (0..g.len()).map(|x| format!("factor{}", x)).chain(keys);
+        // let nodes = (0..g.len()).map(|x| format!("factor{x}")).chain(keys);
         // let labels = (0..g.len()).map(|_| String::new()).chain(key_names);
         let nodes = keys;
         let labels = key_names;
@@ -423,7 +423,7 @@ impl<'g, KF: KeyFormatter> From<&GraphFormatter<'g, KF>> for (GraphNodes, GraphE
         let mut edges = Vec::new();
         for (i, f) in g.iter().enumerate() {
             for k in f.keys() {
-                edges.push((format!("{}", k.0), format!("factor{}", i)));
+                edges.push((format!("{}", k.0), format!("factor{i}")));
             }
         }
         let edges = GraphEdges::new(edges);

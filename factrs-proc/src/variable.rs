@@ -59,8 +59,8 @@ pub fn mark(item: ItemImpl) -> TokenStream2 {
 }
 
 fn tag_all(kind: &TokenStream2, name: &str) -> TokenStream2 {
-    let name_prior = format!("PriorResidual<{}>", name);
-    let name_between = format!("BetweenResidual<{}>", name);
+    let name_prior = format!("PriorResidual<{name}>");
+    let name_between = format!("BetweenResidual<{name}>");
     quote! {
         // Self
         typetag::__private::inventory::submit! {

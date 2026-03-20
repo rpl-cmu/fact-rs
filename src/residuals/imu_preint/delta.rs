@@ -230,7 +230,7 @@ mod test {
 
         let delta = integrate(&gyro, &accel, &ImuBias::identity(), n, t);
 
-        println!("Delta: {}", delta);
+        println!("Delta: {delta}");
         assert_scalar_eq!(delta.dt, t, comp = abs, tol = TOL);
         assert_matrix_eq!(delta.xi_vel, accel.0 * t, comp = abs, tol = TOL);
         assert_matrix_eq!(delta.xi_pos, accel.0 * t * t / 2.0, comp = abs, tol = TOL);
@@ -248,7 +248,7 @@ mod test {
 
         let delta = integrate(&gyro, &accel, &ImuBias::identity(), n, t);
 
-        println!("Delta: {}", delta);
+        println!("Delta: {delta}");
         assert_scalar_eq!(delta.dt, t, comp = abs, tol = TOL);
         assert_matrix_eq!(delta.xi_theta, gyro.0 * t, comp = abs, tol = TOL);
     }
@@ -316,8 +316,8 @@ mod test {
         let accel = accel.remove_bias(&delta.bias_init);
         let a_got = delta.A(&gyro, &accel, dt);
 
-        println!("A_exp: {:.4}", a_exp);
-        println!("A_got: {:.4}", a_got);
+        println!("A_exp: {a_exp:.4}");
+        println!("A_got: {a_got:.4}");
         // First column is an approximation, loosen the tolerance on those
         assert_matrix_eq!(
             a_exp.fixed_view::<12, 3>(3, 0),
@@ -363,12 +363,12 @@ mod test {
         let H_gyro_exp = H_exp.fixed_view::<9, 3>(0, 0);
         let H_accel_exp = H_exp.fixed_view::<9, 3>(0, 3);
 
-        println!("H_accel_got: {:.4}", H_accel_got);
-        println!("H_accel_exp: {:.4}", H_accel_exp);
+        println!("H_accel_got: {H_accel_got:.4}");
+        println!("H_accel_exp: {H_accel_exp:.4}");
         assert_matrix_eq!(H_accel_got, H_accel_exp, comp = abs, tol = TOL);
 
-        println!("H_gyro_got: {:.4}", H_gyro_got);
-        println!("H_gyro_exp: {:.4}", H_gyro_exp);
+        println!("H_gyro_got: {H_gyro_got:.4}");
+        println!("H_gyro_exp: {H_gyro_exp:.4}");
         // Skip top 3 rows, it's an approximation
         assert_matrix_eq!(
             H_gyro_got.fixed_view::<6, 3>(3, 0),

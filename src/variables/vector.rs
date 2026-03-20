@@ -80,7 +80,7 @@ const _: () = {
 
     impl<const N: usize> typetag::Tagged for VectorVar<N> {
         fn tag() -> String {
-            format!("VectorVar<{}>", N)
+            format!("VectorVar<{N}>")
         }
     }
 
@@ -173,11 +173,12 @@ impl<const N: usize, T: Numeric> From<VectorVar<N, T>> for Vector<N, T> {
 impl<const N: usize, T: Numeric> Display for VectorVar<N, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let precision = f.precision().unwrap_or(3);
-        write!(f, "VectorVar{}(", N)?;
+        write!(f, "VectorVar{N}(")?;
         for (i, x) in self.0.iter().enumerate() {
             if i > 0 {
                 write!(f, ", ")?;
             }
+            #[allow(clippy::uninlined_format_args)]
             write!(f, "{:.p$}", x, p = precision)?;
         }
         write!(f, ")")

@@ -165,7 +165,7 @@ impl<const N: usize> Debug for GaussianNoise<N> {
                     p = precision
                 );
             } else {
-                write!(f, "GaussianNoise{}(std: [", N)?;
+                write!(f, "GaussianNoise{N}(std: [")?;
                 for i in 0..N {
                     if i > 0 {
                         write!(f, ", ")?;
@@ -175,7 +175,7 @@ impl<const N: usize> Debug for GaussianNoise<N> {
                 write!(f, "])")?;
             }
         } else if f.alternate() {
-            writeln!(f, "GaussianNoise{}(sqrt_inf:", N)?;
+            writeln!(f, "GaussianNoise{N}(sqrt_inf:")?;
             let width = precision + 4;
             for i in 0..N {
                 write!(f, "    [")?;

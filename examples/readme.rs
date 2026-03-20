@@ -30,5 +30,5 @@ fn main() {
     // Optimize!
     let mut opt: GaussNewton = GaussNewton::new_default(graph);
     let result = opt.optimize(values).unwrap();
-    println!("Results {:#}", result);
+    println!("Results {result:#}");
 }

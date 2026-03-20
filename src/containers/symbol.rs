@@ -68,7 +68,7 @@ impl DefaultSymbolHandler {
     }
 
     pub fn format(f: &mut dyn Write, chr: char, idx: u32) -> fmt::Result {
-        write!(f, "{}{}", chr, idx)
+        write!(f, "{chr}{idx}")
     }
 }
 

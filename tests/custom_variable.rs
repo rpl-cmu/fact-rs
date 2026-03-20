@@ -87,7 +87,7 @@ mod ser_de {
         let trait_object = &MyVar::new(5.5) as &dyn VariableSafe;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"MyVar","val":[5.5]}"#;
-        println!("json: {}", json);
+        println!("json: {json}");
         assert_eq!(json, expected);
     }
 
@@ -105,7 +105,7 @@ mod ser_de {
         let trait_object = &PriorResidual::new(MyVar::new(2.3)) as &dyn Residual;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"PriorResidual<MyVar>","prior":{"val":[2.3]}}"#;
-        println!("json: {}", json);
+        println!("json: {json}");
         assert_eq!(json, expected);
     }
 

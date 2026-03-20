@@ -10,7 +10,7 @@ mod ser_de {
         let trait_object = &PriorResidual::new(VectorVar1::new(2.3)) as &dyn Residual;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"PriorResidual<VectorVar<1>>","prior":[2.3]}"#;
-        println!("json: {}", json);
+        println!("json: {json}");
         assert_eq!(json, expected);
     }
 

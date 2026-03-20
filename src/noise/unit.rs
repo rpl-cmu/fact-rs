@@ -26,6 +26,6 @@ impl<const N: usize> NoiseModel for UnitNoise<N> {
 
 impl<const N: usize> fmt::Display for UnitNoise<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }

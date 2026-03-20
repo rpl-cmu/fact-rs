@@ -319,7 +319,7 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
                 return Err(e);
             }
         }
-        info.push_str(&format!(" {:^12.4e} |", mu));
+        info.push_str(&format!(" {mu:^12.4e} |"));
 
         Ok((values, info))
     }
@@ -391,12 +391,7 @@ impl<K: ConvexableKernel + 'static, O: Optimizer> Optimizer for GraduatedNonConv
             let error_decrease_rel = error_decrease_abs / error_old;
 
             log::info!(
-                "{:^5} | {:^12.4e} | {:^12.4e} | {:^12.4e} | {}",
-                i,
-                error_new,
-                error_decrease_abs,
-                error_decrease_rel,
-                info
+                "{i:^5} | {error_new:^12.4e} | {error_decrease_abs:^12.4e} | {error_decrease_rel:^12.4e} | {info}"
             );
 
             // Check if we need to stop

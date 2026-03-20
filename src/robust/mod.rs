@@ -347,7 +347,7 @@ pub fn test_weight(robust: &impl RobustCost, d: dtype) {
     // weight = loss'(d) / d
     let actual = numerical_derivative(|d| robust.loss(d * d), d, EPS).diff / d;
 
-    println!("Weight got: {}, Weight actual: {}", got, actual);
+    println!("Weight got: {got}, Weight actual: {actual}");
     assert_scalar_eq!(got, actual, comp = abs, tol = TOL);
 }
 

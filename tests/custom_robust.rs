@@ -27,7 +27,7 @@ mod ser_de {
         let trait_object = &DoubleL2 as &dyn RobustCost;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"DoubleL2"}"#;
-        println!("json: {}", json);
+        println!("json: {json}");
         assert_eq!(json, expected);
     }
 

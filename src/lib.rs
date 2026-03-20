@@ -73,7 +73,6 @@
 //! println!("Results {:#}", result);
 //! ```
 
-#![allow(clippy::uninlined_format_args)]
 #![warn(clippy::unwrap_used)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
