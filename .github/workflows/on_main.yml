@@ -41,6 +41,8 @@ jobs:
     if: ${{ fromJSON(needs.release.outputs.releases_created) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       
       - name: Setup Rust toolchain and cache
         uses: actions-rust-lang/setup-rust-toolchain@v1
