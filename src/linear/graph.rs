@@ -1,4 +1,4 @@
-use faer::sparse::{SparseColMat, SymbolicSparseColMat};
+use faer::sparse::{Pair, SparseColMat, SymbolicSparseColMat};
 use faer_ext::IntoFaer;
 
 use super::LinearValues;
@@ -41,7 +41,7 @@ impl LinearGraph {
         let total_rows = self.factors.iter().map(|f| f.dim_out()).sum();
         let total_columns = order.dim();
 
-        let mut indices = Vec::<(usize, usize)>::new();
+        let mut indices = Vec::<Pair<usize, usize>>::new();
 
         let _ = self.factors.iter().fold(0, |row, f| {
             f.keys.iter().for_each(|key| {
@@ -51,7 +51,7 @@ impl LinearGraph {
                         dim: col_dim,
                     } = order.get(*key).expect("Key missing in values");
                     (0..*col_dim).for_each(|j| {
-                        indices.push((row + i, col + j));
+                        indices.push(Pair::new(row + i, col + j));
                     });
                 });
             });
@@ -99,7 +99,7 @@ impl LinearGraph {
             row + f.dim_out()
         });
 
-        let jac = SparseColMat::new_from_order_and_values(
+        let jac = SparseColMat::new_from_argsort(
             graph_order.sparsity_pattern.clone(),
             &graph_order.sparsity_order,
             values.as_slice(),

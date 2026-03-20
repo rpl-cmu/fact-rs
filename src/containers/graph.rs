@@ -3,7 +3,7 @@ use std::{
     marker::PhantomData,
 };
 
-use faer::sparse::SymbolicSparseColMat;
+use faer::sparse::{Pair, SymbolicSparseColMat};
 use pad_adapter::PadAdapter;
 
 use super::{DefaultSymbolHandler, Idx, KeyFormatter, Values, ValuesOrder};
@@ -54,6 +54,10 @@ impl Graph {
         }
     }
 
+    pub fn at(&self, idx: usize) -> &Factor {
+        &self.factors[idx]
+    }
+
     pub fn add_factor(&mut self, factor: Factor) {
         self.factors.push(factor);
     }
@@ -79,7 +83,7 @@ impl Graph {
         let total_rows = self.factors.iter().map(|f| f.dim_out()).sum();
         let total_columns = order.dim();
 
-        let mut indices = Vec::<(usize, usize)>::new();
+        let mut indices = Vec::<Pair<usize, usize>>::new();
 
         let _ = self.factors.iter().fold(0, |row, f| {
             f.keys().iter().for_each(|key| {
@@ -89,7 +93,7 @@ impl Graph {
                         dim: col_dim,
                     } = order.get(*key).expect("Key missing in values");
                     (0..*col_dim).for_each(|j| {
-                        indices.push((row + i, col + j));
+                        indices.push(Pair::new(row + i, col + j));
                     });
                 });
             });
@@ -105,6 +109,14 @@ impl Graph {
             sparsity_order,
         }
     }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, Factor> {
+        self.factors.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Factor> {
+        self.factors.iter_mut()
+    }
 }
 
 impl Debug for Graph {
@@ -113,12 +125,21 @@ impl Debug for Graph {
     }
 }
 
+impl IntoIterator for Graph {
+    type Item = Factor;
+    type IntoIter = std::vec::IntoIter<Factor>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.factors.into_iter()
+    }
+}
+
 /// Formatter for a graph
 ///
 /// Specifically, this can be used if custom symbols are desired. See
 /// [tests/custom_key](https://github.com/rpl-cmu/factrs/blob/dev/tests/custom_key.rs) for examples.
 pub struct GraphFormatter<'g, KF> {
-    graph: &'g Graph,
+    pub graph: &'g Graph,
     kf: PhantomData<KF>,
 }
 
@@ -161,5 +182,5 @@ pub struct GraphOrder {
     // Contains the sparsity pattern of the jacobian
     pub sparsity_pattern: SymbolicSparseColMat<usize>,
     // Contains the order of values to put into the sparsity pattern
-    pub sparsity_order: faer::sparse::ValuesOrder<usize>,
+    pub sparsity_order: faer::sparse::Argsort<usize>,
 }

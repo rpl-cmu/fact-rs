@@ -1,21 +1,21 @@
 use std::ops::Mul;
 
 use faer::{
-    prelude::SpSolver,
-    sparse::{linalg::solvers, SparseColMatRef},
     Mat, MatRef,
+    linalg::solvers::Solve,
+    sparse::{SparseColMatRef, linalg::solvers},
 };
 
 use crate::dtype;
 
 /// Trait to solve sparse linear systems
-pub trait LinearSolver: Default {
+pub trait LinearSolver {
     /// Solve a symmetric linear system
     ///
     /// This will be used by Cholesky to solve A^T A and by Levenberg-Marquardt
     /// to solve J^T J
     fn solve_symmetric(&mut self, a: SparseColMatRef<usize, dtype>, b: MatRef<dtype>)
-        -> Mat<dtype>;
+    -> Mat<dtype>;
 
     /// Solve a least squares problem
     ///
@@ -24,12 +24,18 @@ pub trait LinearSolver: Default {
     fn solve_lst_sq(&mut self, a: SparseColMatRef<usize, dtype>, b: MatRef<dtype>) -> Mat<dtype>;
 }
 
+impl Default for Box<dyn LinearSolver> {
+    fn default() -> Self {
+        Box::new(CholeskySolver::default())
+    }
+}
+
 // ------------------------- Cholesky Linear Solver ------------------------- //
 
 /// Cholesky linear solver
 #[derive(Default)]
 pub struct CholeskySolver {
-    sparsity_pattern: Option<solvers::SymbolicCholesky<usize>>,
+    sparsity_pattern: Option<solvers::SymbolicLlt<usize>>,
 }
 
 impl LinearSolver for CholeskySolver {
@@ -40,12 +46,12 @@ impl LinearSolver for CholeskySolver {
     ) -> Mat<dtype> {
         if self.sparsity_pattern.is_none() {
             self.sparsity_pattern = Some(
-                solvers::SymbolicCholesky::try_new(a.symbolic(), faer::Side::Lower)
+                solvers::SymbolicLlt::try_new(a.symbolic(), faer::Side::Lower)
                     .expect("Symbolic cholesky failed"),
             );
         }
 
-        solvers::Cholesky::try_new_with_symbolic(
+        solvers::Llt::try_new_with_symbolic(
             self.sparsity_pattern
                 .clone()
                 .expect("Missing symbol cholesky"),
@@ -146,8 +152,10 @@ impl LinearSolver for LUSolver {
 
 #[cfg(test)]
 mod test {
-    use faer::{mat, sparse::SparseColMat};
-    use matrixcompare::assert_matrix_eq;
+    use faer::{
+        mat,
+        sparse::{SparseColMat, Triplet},
+    };
 
     use super::*;
 
@@ -156,12 +164,12 @@ mod test {
             3,
             2,
             &[
-                (0, 0, 10.0),
-                (1, 0, 2.0),
-                (2, 0, 3.0),
-                (0, 1, 4.0),
-                (1, 1, 20.0),
-                (2, 1, -45.0),
+                Triplet::new(0, 0, 10.0),
+                Triplet::new(1, 0, 2.0),
+                Triplet::new(2, 0, 3.0),
+                Triplet::new(0, 1, 4.0),
+                Triplet::new(1, 1, 20.0),
+                Triplet::new(2, 1, -45.0),
             ],
         )
         .expect("Failed to make symbolic matrix");
@@ -171,7 +179,9 @@ mod test {
         let x = solver.solve_lst_sq(a.as_ref(), b.as_ref());
         println!("{:?}", x);
 
-        assert_matrix_eq!(x, x_exp, comp = abs, tol = 1e-6);
+        let relative_err = |a: dtype, b: dtype| (a - b).abs() / dtype::max(a.abs(), b.abs());
+        assert!(relative_err(x[(0, 0)], x_exp[(0, 0)]) < 1e-6);
+        assert!(relative_err(x[(1, 0)], x_exp[(1, 0)]) < 1e-6);
     }
 
     #[test]

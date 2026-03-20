@@ -1,68 +1,86 @@
 use faer_ext::IntoNalgebra;
 
-use super::{OptObserverVec, OptParams, OptResult, Optimizer};
+use super::{BaseOptParams, OptObserverVec, OptResult, Optimizer};
 use crate::{
     containers::{Graph, GraphOrder, Values, ValuesOrder},
+    dtype,
     linalg::DiffResult,
-    linear::{CholeskySolver, LinearSolver, LinearValues},
+    linear::{LinearSolver, LinearValues},
 };
 
 /// The Gauss-Newton optimizer
 ///
-/// Solves $A \Delta \Theta = b$ directly for each optimizer steps. Parameters
-/// can be modified using the `params` field, and observers add using
-/// `observers`. Additionally, is generic over the linear solver, but defaults
-/// to [CholeskySolver]. See the [linear](crate::linear) module for more linear
-/// solver options.
-#[derive(Default)]
-pub struct GaussNewton<S: LinearSolver = CholeskySolver> {
+/// Solves $A \Delta \Theta = b$ directly for each optimizer steps. It defaults
+/// to using [CholeskySolver](crate::linear::CholeskySolver) under the hood, but
+/// this can be changed using [set_solver](GaussNewton::set_solver). See
+/// the [linear](crate::linear) module for more linear solver options.
+pub struct GaussNewton {
     graph: Graph,
-    solver: S,
+    solver: Box<dyn LinearSolver>,
     /// Basic parameters for the optimizer
-    pub params: OptParams,
+    params: BaseOptParams,
     /// Observers for the optimizer
-    pub observers: OptObserverVec<Values>,
+    observers: OptObserverVec,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
 }
 
-impl<S: LinearSolver> GaussNewton<S> {
-    pub fn new(graph: Graph) -> Self {
+impl GaussNewton {
+    /// Sets the linear solver to use for the optimizer.
+    pub fn set_solver(&mut self, solver: impl LinearSolver + 'static) {
+        self.solver = Box::new(solver);
+    }
+}
+
+impl Optimizer for GaussNewton {
+    type Params = BaseOptParams;
+
+    fn new(params: Self::Params, graph: Graph) -> Self {
         Self {
             graph,
-            solver: S::default(),
+            solver: Default::default(),
             observers: OptObserverVec::default(),
-            params: OptParams::default(),
+            params,
             graph_order: None,
         }
     }
 
-    pub fn graph(&self) -> &Graph {
+    fn observers(&self) -> &OptObserverVec {
+        &self.observers
+    }
+
+    fn observers_mut(&mut self) -> &mut OptObserverVec {
+        &mut self.observers
+    }
+
+    fn graph(&self) -> &Graph {
         &self.graph
     }
-}
 
-impl<S: LinearSolver> Optimizer for GaussNewton<S> {
-    type Input = Values;
+    fn graph_mut(&mut self) -> &mut Graph {
+        &mut self.graph
+    }
 
-    fn error(&self, values: &Values) -> crate::dtype {
+    fn error(&self, values: &Values) -> dtype {
         self.graph.error(values)
     }
 
-    fn params(&self) -> &OptParams {
+    fn params(&self) -> &BaseOptParams {
         &self.params
     }
 
-    fn init(&mut self, _values: &Values) {
-        // TODO: Some way to manual specify how to computer ValuesOrder
+    fn init(&mut self, _values: &Values) -> Vec<&'static str> {
+        // TODO: Some way to manual specify how to compute ValuesOrder
         // Precompute the sparsity pattern
         self.graph_order = Some(
             self.graph
                 .sparsity_pattern(ValuesOrder::from_values(_values)),
         );
+
+        Vec::new()
     }
 
-    fn step(&mut self, mut values: Values, idx: usize) -> OptResult<Values> {
+    fn step(&mut self, mut values: Values, _idx: usize) -> OptResult<(Values, String)> {
         // Solve the linear system
         let linear_graph = self.graph.linearize(&values);
         let DiffResult { value: r, diff: j } =
@@ -88,9 +106,7 @@ impl<S: LinearSolver> Optimizer for GaussNewton<S> {
         );
         values.oplus_mut(&dx);
 
-        self.observers.notify(&values, idx);
-
-        Ok(values)
+        Ok((values, String::new()))
     }
 }
 

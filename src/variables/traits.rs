@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 
-use downcast_rs::{impl_downcast, Downcast};
+use downcast_rs::{Downcast, impl_downcast};
 
 use crate::{
     dtype,
@@ -20,7 +20,7 @@ pub trait Variable: Clone + Sized + Display + Debug {
     type T: Numeric;
     /// Dimension of the Lie group / Tangent space
     type Dim: DimName;
-    const DIM: usize = Self::Dim::USIZE;
+    const DIM: usize = Self::Dim::DIM;
     /// Alias for the type for dual conversion
     type Alias<TT: Numeric>: Variable<T = TT>;
 

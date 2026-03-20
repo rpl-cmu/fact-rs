@@ -21,7 +21,7 @@ pub trait NoiseModel: Debug + DynClone {
     where
         Self: Sized,
     {
-        Self::Dim::USIZE
+        Self::Dim::DIM
     }
 
     /// Whiten a vector

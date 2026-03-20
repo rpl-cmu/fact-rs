@@ -68,11 +68,12 @@
 //! graph.add_factor(factor);
 //!
 //! // Optimize!
-//! let mut opt: GaussNewton = GaussNewton::new(graph);
+//! let mut opt: GaussNewton = GaussNewton::new_default(graph);
 //! let result = opt.optimize(values).unwrap();
 //! println!("Results {:#}", result);
 //! ```
 
+#![allow(clippy::uninlined_format_args)]
 #![warn(clippy::unwrap_used)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
@@ -217,11 +218,12 @@ pub mod core {
         assign_symbols,
         containers::{Factor, Graph, Values},
         fac,
+        linalg::{Vector1, Vector2, Vector3},
         noise::{GaussianNoise, UnitNoise},
         optimizers::{GaussNewton, LevenMarquardt},
         residuals::{BetweenResidual, PriorResidual},
         robust::{GemanMcClure, Huber, L2},
-        variables::{VectorVar, VectorVar1, VectorVar2, VectorVar3, SE2, SE3, SO2, SO3},
+        variables::{SE2, SE3, SO2, SO3, VectorVar, VectorVar1, VectorVar2, VectorVar3},
     };
 }
 

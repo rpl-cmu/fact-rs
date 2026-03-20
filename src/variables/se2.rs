@@ -4,11 +4,11 @@ use super::VectorVar2;
 use crate::{
     dtype,
     linalg::{
-        vectorx, AllocatorBuffer, Const, DefaultAllocator, DimName, DualAllocator, DualVector,
-        Matrix2, Matrix2x3, Matrix3, MatrixView, Numeric, SupersetOf, Vector2, Vector3,
-        VectorView2, VectorView3, VectorViewX, VectorX,
+        AllocatorBuffer, Const, DefaultAllocator, DimName, DualAllocator, DualVector, Matrix2,
+        Matrix2x3, Matrix3, MatrixView, Numeric, SupersetOf, Vector2, Vector3, VectorView2,
+        VectorView3, VectorViewX, VectorX, vectorx,
     },
-    variables::{MatrixLieGroup, Variable, SO2},
+    variables::{MatrixLieGroup, SO2, Variable},
 };
 
 /// Special Euclidean Group in 2D
@@ -30,7 +30,7 @@ impl<T: Numeric> SE2<T> {
         }
     }
 
-    pub fn xy(&self) -> VectorView2<T> {
+    pub fn xy(&self) -> VectorView2<'_, T> {
         self.xy.as_view()
     }
 

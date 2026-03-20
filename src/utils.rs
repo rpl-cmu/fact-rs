@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     assign_symbols,
-    containers::{FactorBuilder, Graph, Values},
+    containers::{Graph, Values},
     dtype, fac,
     linalg::{Matrix3, Matrix6, Vector3},
     noise::GaussianNoise,
@@ -21,14 +21,18 @@ assign_symbols!(X: SE2, SE3);
 /// Currently supports only SE2 and SE3 pose graphs. Will autodetect which one
 /// it is, so mixed graph type isn't allowed.
 pub fn load_g20(file: &str) -> (Graph, Values) {
-    let file = File::open(file).expect("File not found!");
+    _load_g20_impl(file, false)
+}
+
+pub fn _load_g20_impl(file_name: &str, is_sqrt_inf: bool) -> (Graph, Values) {
+    let file = File::open(file_name).expect("File not found!");
 
     let mut values: Values = Values::new();
     let mut graph = Graph::new();
 
     for line in BufReader::new(file).lines() {
         let line = line.expect("Missing line");
-        let parts = line.split(" ").collect::<Vec<&str>>();
+        let parts = line.split_whitespace().collect::<Vec<&str>>();
         match parts[0] {
             "VERTEX_SE2" => {
                 let id = parts[1].parse::<u32>().expect("Failed to parse g20");
@@ -63,17 +67,44 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                 let m33 = parts[11].parse::<dtype>().expect("Failed to parse g20");
                 // Note have to permute here - g2o stores with translation first, factrs with
                 // rotation first
-                #[rustfmt::skip]
-                let inf = Matrix3::new(
-                    m33, m13, m23,
-                    m13, m11, m12,
-                    m23, m12, m22,
-                );
 
                 let key1 = X(id_prev);
                 let key2 = X(id_curr);
                 let var = SE2::new(theta, x, y);
-                let noise = GaussianNoise::from_matrix_inf(inf.as_view());
+
+                // If Cholesky fails (non-PD), the file likely stores
+                // upper-triangular sqrt information factors instead. Build the
+                // info matrix as U^T * U, permute, and decompose.
+                let noise = if is_sqrt_inf {
+                    #[rustfmt::skip]
+                    let sqrt_inf = Matrix3::new(
+                        m33, m13, m23,
+                        0.0, m11, m12,
+                        0.0, 0.0, m22,
+                    );
+                    GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
+                } else {
+                    #[rustfmt::skip]
+                    let inf = Matrix3::new(
+                        m33, m13, m23,
+                        m13, m11, m12,
+                        m23, m12, m22,
+                    );
+                    match GaussianNoise::from_matrix_inf(inf.as_view()) {
+                        Some(n) => n,
+                        None => {
+                            log::warn!(
+                                "Information matrix is not positive definite for factor {}. \
+                                     Interpreting all factors as upper-triangular sqrt \
+                                     information factors.",
+                                graph.len()
+                            );
+                            // Restart loading with sqrt_inf interpretation
+                            return _load_g20_impl(file_name, true);
+                        }
+                    }
+                };
+
                 let factor = fac![BetweenResidual::new(var), (key1, key2), noise];
                 graph.add_factor(factor);
             }
@@ -94,7 +125,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                 let key = X(id);
 
                 // Add prior on whatever the first variable is
-                if values.len() == 1 {
+                if values.is_empty() {
                     let noise =
                         GaussianNoise::<6>::from_diag_covs(1e-6, 1e-6, 1e-6, 1e-4, 1e-4, 1e-4);
                     let factor = fac![PriorResidual::new(var.clone()), key, noise];
@@ -136,17 +167,44 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                 let m55 = parts[28].parse::<dtype>().expect("Failed to parse g20");
                 let m56 = parts[29].parse::<dtype>().expect("Failed to parse g20");
                 let m66 = parts[30].parse::<dtype>().expect("Failed to parse g20");
-                // Note have to permute here - g2o stores with translation first, factrs with
-                // rotation first
+
+                // If Cholesky fails (non-PD), the file likely stores
+                // upper-triangular sqrt information factors instead. Build the
+                // info matrix as U^T * U, permute, and decompose.
                 #[rustfmt::skip]
-                let inf = Matrix6::new(
-                    m44, m45, m46, m14, m24, m34,
-                    m45, m55, m56, m15, m25, m35,
-                    m46, m56, m66, m16, m25, m36,
-                    m14, m15, m16, m11, m12, m13,
-                    m24, m25, m26, m12, m22, m23,
-                    m34, m35, m36, m13, m23, m33,
-                );
+                    let inf = Matrix6::new(
+                        m44, m45, m46, m14, m24, m34,
+                        m45, m55, m56, m15, m25, m35,
+                        m46, m56, m66, m16, m26, m36,
+                        m14, m15, m16, m11, m12, m13,
+                        m24, m25, m26, m12, m22, m23,
+                        m34, m35, m36, m13, m23, m33,
+                    );
+                let noise = if is_sqrt_inf {
+                    #[rustfmt::skip]
+                        let sqrt_inf = Matrix6::new(
+                            m44, m45, m46, m14, m24, m34,
+                            0.0, m55, m56, m15, m25, m35,
+                            0.0, 0.0, m66, m16, m26, m36,
+                            0.0, 0.0, 0.0, m11, m12, m13,
+                            0.0, 0.0, 0.0, 0.0, m22, m23,
+                            0.0, 0.0, 0.0, 0.0, 0.0, m33,
+                        );
+                    GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
+                } else {
+                    match GaussianNoise::from_matrix_inf(inf.as_view()) {
+                        Some(n) => n,
+                        None => {
+                            log::warn!(
+                                "Information matrix is not positive definite for factor {}. \
+                                     Interpreting all factors as upper-triangular sqrt \
+                                     information factors.",
+                                graph.len()
+                            );
+                            return _load_g20_impl(file_name, true);
+                        }
+                    }
+                };
 
                 let rot = SO3::from_xyzw(qx, qy, qz, qw);
                 let xyz = Vector3::new(x, y, z);
@@ -154,10 +212,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
 
                 let key1 = X(id_prev);
                 let key2 = X(id_curr);
-                let noise = GaussianNoise::from_matrix_inf(inf.as_view());
-                let factor = FactorBuilder::new2(BetweenResidual::new(var), key1, key2)
-                    .noise(noise)
-                    .build();
+                let factor = fac![BetweenResidual::new(var), (key1, key2), noise];
                 graph.add_factor(factor);
             }
 

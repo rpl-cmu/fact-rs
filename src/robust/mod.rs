@@ -1,8 +1,5 @@
 //! Robust kernels (M-Estimators) for robust estimation.
-//!
-//! We recommend checking out "Parameter Estimation Techniques:  A Tutorial with
-//! Application to Conic Fitting" by Zhengyou Zhang for details on our
-//! implementations.
+//! [^@zhangParameterEstimationTechniques1997]
 //!
 //! They can roughly be split into the following categories:
 //!
@@ -20,6 +17,8 @@
 //! Generally constant asymptotic behavior is the best at outlier rejection, but
 //! relies heavily on good initialization. Some work, such as Graduated
 //! Non-Convexity (GNC), has been shown to circumvent this requirement.
+//!
+//! [^@zhangParameterEstimationTechniques1997]: Zhang, Zhengyou. “Parameter Estimation Techniques: A Tutorial with Application to Conic Fitting.” Image and Vision Computing, vol. 15, no. 1, 1997, pp. 59–76
 
 use std::fmt::Debug;
 
@@ -89,11 +88,7 @@ impl RobustCost for L1 {
     }
 
     fn weight(&self, d2: dtype) -> dtype {
-        if d2 <= 1e-3 {
-            1.0
-        } else {
-            1.0 / d2.sqrt()
-        }
+        if d2 <= 1e-3 { 1.0 } else { 1.0 / d2.sqrt() }
     }
 }
 
@@ -129,11 +124,7 @@ impl RobustCost for Huber {
 
     fn weight(&self, d2: dtype) -> dtype {
         let dabs = d2.sqrt();
-        if dabs <= self.k {
-            1.0
-        } else {
-            self.k / dabs
-        }
+        if dabs <= self.k { 1.0 } else { self.k / dabs }
     }
 }
 

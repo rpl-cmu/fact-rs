@@ -1,6 +1,6 @@
 use factrs::{
     assign_symbols,
-    core::{BetweenResidual, GaussNewton, Graph, Huber, PriorResidual, Values, SO2},
+    core::{BetweenResidual, GaussNewton, Graph, Huber, PriorResidual, SO2, Values},
     fac,
     traits::*,
 };
@@ -28,7 +28,7 @@ fn main() {
     graph.add_factor(factor);
 
     // Optimize!
-    let mut opt: GaussNewton = GaussNewton::new(graph);
+    let mut opt: GaussNewton = GaussNewton::new_default(graph);
     let result = opt.optimize(values).unwrap();
     println!("Results {:#}", result);
 }

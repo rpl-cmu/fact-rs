@@ -67,7 +67,7 @@ impl ValuesOrder {
         self.map.is_empty()
     }
 
-    pub fn iter(&self) -> HashMapIter<Key, Idx> {
+    pub fn iter(&self) -> HashMapIter<'_, Key, Idx> {
         self.map.iter()
     }
 }

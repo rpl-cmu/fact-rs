@@ -1,14 +1,12 @@
-use std::{
-    collections::hash_map::Entry, default::Default, fmt, fmt::Write, iter::IntoIterator,
-    marker::PhantomData,
-};
+use std::{default::Default, fmt, fmt::Write, iter::IntoIterator, marker::PhantomData};
 
-use foldhash::HashMap;
+use foldhash::fast::RandomState;
+use indexmap::{IndexMap, map::Entry};
 use pad_adapter::PadAdapter;
 
 use super::{
-    symbol::{DefaultSymbolHandler, KeyFormatter},
     Key, Symbol, TypedSymbol,
+    symbol::{DefaultSymbolHandler, KeyFormatter},
 };
 use crate::{
     linear::LinearValues,
@@ -38,7 +36,7 @@ use crate::{
 #[derive(Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Values {
-    values: HashMap<Key, Box<dyn VariableSafe>>,
+    values: IndexMap<Key, Box<dyn VariableSafe>, RandomState>,
 }
 
 impl Values {
@@ -56,7 +54,7 @@ impl Values {
 
     /// Returns an [std::collections::hash_map::Entry] from the underlying
     /// HashMap.
-    pub fn entry(&mut self, key: impl Symbol) -> Entry<Key, Box<dyn VariableSafe>> {
+    pub fn entry(&mut self, key: impl Symbol) -> Entry<'_, Key, Box<dyn VariableSafe>> {
         self.values.entry(key.into())
     }
 
@@ -150,7 +148,7 @@ impl Values {
         V: VariableDtype,
     {
         self.values
-            .remove(&symbol.into())
+            .shift_remove(&symbol.into())
             .and_then(|value| value.downcast::<V>().ok())
             .map(|value| *value)
     }
@@ -270,7 +268,7 @@ impl<KF: KeyFormatter> fmt::Debug for ValuesFormatter<'_, KF> {
 
 impl IntoIterator for Values {
     type Item = (Key, Box<dyn VariableSafe>);
-    type IntoIter = std::collections::hash_map::IntoIter<Key, Box<dyn VariableSafe>>;
+    type IntoIter = indexmap::map::IntoIter<Key, Box<dyn VariableSafe>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.values.into_iter()

@@ -13,7 +13,7 @@ use crate::{
     linear::LinearFactor,
     noise::{NoiseModel, UnitNoise},
     residuals::Residual,
-    robust::{RobustCost, L2},
+    robust::{L2, RobustCost},
 };
 
 /// Main structure to represent a factor in the graph.
@@ -59,10 +59,10 @@ use crate::{
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Factor {
-    keys: Vec<Key>,
-    residual: Box<dyn Residual>,
-    noise: Box<dyn NoiseModel>,
-    robust: Box<dyn RobustCost>,
+    pub(crate) keys: Vec<Key>,
+    pub(crate) residual: Box<dyn Residual>,
+    pub(crate) noise: Box<dyn NoiseModel>,
+    pub(crate) robust: Box<dyn RobustCost>,
 }
 
 impl Factor {

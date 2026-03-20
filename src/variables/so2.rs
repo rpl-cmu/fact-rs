@@ -3,9 +3,9 @@ use std::{fmt, ops};
 use crate::{
     dtype,
     linalg::{
-        vectorx, AllocatorBuffer, Const, DefaultAllocator, Derivative, DimName, DualAllocator,
-        DualVector, Matrix1, Matrix2, MatrixView, Numeric, SupersetOf, Vector1, Vector2, VectorDim,
-        VectorView1, VectorView2, VectorViewX, VectorX,
+        AllocatorBuffer, Const, DefaultAllocator, Derivative, DimName, DualAllocator, DualVector,
+        Matrix1, Matrix2, MatrixView, Numeric, SupersetOf, Vector1, Vector2, VectorDim,
+        VectorView1, VectorView2, VectorViewX, VectorX, vectorx,
     },
     variables::{MatrixLieGroup, Variable},
 };

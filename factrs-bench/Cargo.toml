@@ -4,17 +4,28 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-nalgebra = { version = "0.33", features = ["compare"] }
+faer.workspace = true
+nalgebra.workspace = true
 factrs = { version = "0.2.0", path = ".." }
-tiny-solver = { git = "https://github.com/contagon/tiny-solver-rs", branch = "rayon" }
+pretty_env_logger = "0.5.0"
+rayon = "1.10.0"
+
+# other dependencies
+tiny-solver = { version = "0.17" }
+# use a custom version of sophus to give
+# 1) Add cloning to graph/value structure for use in benchmarks
+# 2) Add stopping criteria to LM, so it takes same # of steps.
+sophus_opt = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", features = [
+    "simd",
+] }
+sophus_lie = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn" }
+sophus_autodiff = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn" }
+# use an older version of faer to disable multithreaded in sophus
+sophus_faer = { version = "=0.20.1", package = "faer" }
 
 [dev-dependencies]
-diol = { version = "0.8.3", default-features = false }
+diol = { version = "0.13.0", default-features = false }
 
 [[bench]]
-name = "g2o-2d"
-harness = false
-
-[[bench]]
-name = "g2o-3d"
+name = "g2o"
 harness = false

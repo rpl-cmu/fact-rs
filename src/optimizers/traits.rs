@@ -1,27 +1,37 @@
-use crate::dtype;
+use crate::{
+    core::{Graph, Values},
+    dtype,
+};
 
 /// Error types for optimizers
 #[derive(Debug)]
-pub enum OptError<Input> {
-    MaxIterations(Input),
+pub enum OptError {
+    MaxIterations(Values),
     InvalidSystem,
     FailedToStep,
 }
 
 /// Result type for optimizers
-pub type OptResult<Input> = Result<Input, OptError<Input>>;
+pub type OptResult<T> = Result<T, OptError>;
 
 // ------------------------- Optimizer Params ------------------------- //
 /// Parameters for the optimizer
+///
+/// Simple trait to return base parameters for the optimizer.
+pub trait OptParams: Default + Clone {
+    fn base_params(&self) -> &BaseOptParams;
+}
+
+/// Parameters for the optimizer
 #[derive(Debug, Clone)]
-pub struct OptParams {
+pub struct BaseOptParams {
     pub max_iterations: usize,
     pub error_tol_relative: dtype,
     pub error_tol_absolute: dtype,
     pub error_tol: dtype,
 }
 
-impl Default for OptParams {
+impl Default for BaseOptParams {
     fn default() -> Self {
         Self {
             max_iterations: 100,
@@ -32,41 +42,39 @@ impl Default for OptParams {
     }
 }
 
+impl OptParams for BaseOptParams {
+    fn base_params(&self) -> &BaseOptParams {
+        self
+    }
+}
+
 // ------------------------- Optimizer Observers ------------------------- //
 /// Observer trait for optimization
 ///
 /// This trait is used to observe the optimization process. It is called at each
 /// step of the optimization process.
 pub trait OptObserver {
-    type Input;
-    fn on_step(&self, values: &Self::Input, time: f64);
+    fn on_step(&self, values: &Values, time: i64);
 }
 
 /// Observer collection for optimization
 ///
 /// This struct holds a collection of observers for optimization. It is used to
 /// notify all observers at each step of the optimization process.
-pub struct OptObserverVec<I> {
-    observers: Vec<Box<dyn OptObserver<Input = I>>>,
+#[derive(Default)]
+pub struct OptObserverVec {
+    observers: Vec<Box<dyn OptObserver>>,
 }
 
-impl<I> OptObserverVec<I> {
-    pub fn add(&mut self, callback: impl OptObserver<Input = I> + 'static) {
+impl OptObserverVec {
+    pub fn add(&mut self, callback: impl OptObserver + 'static) {
         let boxed = Box::new(callback);
         self.observers.push(boxed);
     }
 
-    pub fn notify(&self, values: &I, idx: usize) {
+    pub fn notify(&self, values: &Values, idx: usize) {
         for callback in &self.observers {
-            callback.on_step(values, idx as f64);
-        }
-    }
-}
-
-impl<I> Default for OptObserverVec<I> {
-    fn default() -> Self {
-        Self {
-            observers: Vec::new(),
+            callback.on_step(values, idx as i64);
         }
     }
 }
@@ -77,26 +85,55 @@ impl<I> Default for OptObserverVec<I> {
 /// This trait is used to define the core optimization functions for an
 /// optimizer, specifically a handful of stopping criteria and the main loop.
 pub trait Optimizer {
-    /// Values the optimizer is optimizing
-    type Input;
+    type Params: OptParams
+    where
+        Self: Sized;
+
+    // ------------------------- Required ------------------------- //
+    /// Create a new optimizer
+    fn new(params: Self::Params, graph: Graph) -> Self
+    where
+        Self: Sized;
+
+    /// Observers
+    fn observers(&self) -> &OptObserverVec;
+
+    /// Observers
+    fn observers_mut(&mut self) -> &mut OptObserverVec;
+
+    /// The graph we are optimizing
+    fn graph(&self) -> &Graph;
+
+    /// The graph we are optimizing
+    ///
+    /// This is mutable to allow for modifying the graph during optimization.
+    /// BE CAREFUL! In most optimizer, the overall structure of the graph should
+    /// remain the same between optimization steps.
+    fn graph_mut(&mut self) -> &mut Graph;
 
     /// Parameters for the optimizer
-    fn params(&self) -> &OptParams;
+    fn params(&self) -> &BaseOptParams;
 
     /// Perform a single step of optimization
-    fn step(&mut self, values: Self::Input, idx: usize) -> OptResult<Self::Input>;
+    ///
+    /// Returns the new values and a string with information about the step
+    fn step(&mut self, values: Values, idx: usize) -> OptResult<(Values, String)>;
 
     /// Compute the error of the current values
-    fn error(&self, values: &Self::Input) -> dtype;
+    fn error(&self, values: &Values) -> dtype;
 
     /// Initialize the optimizer, optional
-    fn init(&mut self, _values: &Self::Input) {}
+    ///
+    /// Returns a vector of strings to append to a column when logging
+    fn init(&mut self, _values: &Values) -> Vec<&'static str> {
+        Vec::new()
+    }
 
-    // TODO: Custom logging based on optimizer
+    // ------------------------- Derived from the above ------------------------- //
     /// Main optimization call function
-    fn optimize(&mut self, mut values: Self::Input) -> OptResult<Self::Input> {
+    fn optimize(&mut self, mut values: Values) -> OptResult<Values> {
         // Setup up everything from our values
-        self.init(&values);
+        let append = self.init(&values);
 
         // Check if we need to optimize at all
         let mut error_old = self.error(&values);
@@ -105,33 +142,50 @@ pub trait Optimizer {
             return Ok(values);
         }
 
+        let extra = if append.is_empty() { "" } else { " |" };
+
         log::info!(
-            "{:^5} | {:^12} | {:^12} | {:^12}",
+            "{:^5} | {:^12} | {:^12} | {:^12} | {}",
             "Iter",
             "Error",
             "ErrorAbs",
-            "ErrorRel"
+            "ErrorRel",
+            append.join(" | ") + extra,
         );
         log::info!(
-            "{:^5} | {:^12} | {:^12} | {:^12}",
+            "{:^5} | {:^12} | {:^12} | {:^12} | {}",
             "-----",
             "------------",
             "------------",
-            "------------"
+            "------------",
+            append
+                .iter()
+                .map(|s| "-".repeat(s.len()))
+                .collect::<Vec<_>>()
+                .join(" | ")
+                + extra
         );
         log::info!(
-            "{:^5} | {:^12.4e} | {:^12} | {:^12}",
+            "{:^5} | {:^12.4e} | {:^12} | {:^12} | {}",
             0,
             error_old,
             "-",
-            "-"
+            "-",
+            append
+                .iter()
+                .map(|s| format!("{:^width$}", "-", width = s.len()))
+                .collect::<Vec<_>>()
+                .join(" | ")
+                + extra
         );
 
         // Begin iterations
         let mut error_new = error_old;
         for i in 1..self.params().max_iterations + 1 {
             error_old = error_new;
-            values = self.step(values, i)?;
+            let (temp, info) = self.step(values, i)?;
+            values = temp;
+            self.observers().notify(&values, i);
 
             // Evaluate error again to see how we did
             error_new = self.error(&values);
@@ -140,11 +194,12 @@ pub trait Optimizer {
             let error_decrease_rel = error_decrease_abs / error_old;
 
             log::info!(
-                "{:^5} | {:^12.4e} | {:^12.4e} | {:^12.4e}",
+                "{:^5} | {:^12.4e} | {:^12.4e} | {:^12.4e} | {}",
                 i,
                 error_new,
                 error_decrease_abs,
-                error_decrease_rel
+                error_decrease_rel,
+                info
             );
 
             // Check if we need to stop
@@ -152,16 +207,31 @@ pub trait Optimizer {
                 log::info!("Error is below tolerance, stopping optimization");
                 return Ok(values);
             }
-            if error_decrease_abs <= self.params().error_tol_absolute {
+            if error_decrease_abs >= 0.0 && error_decrease_abs <= self.params().error_tol_absolute {
                 log::info!("Error decrease is below absolute tolerance, stopping optimization");
                 return Ok(values);
             }
-            if error_decrease_rel <= self.params().error_tol_relative {
+            if error_decrease_rel >= 0.0 && error_decrease_rel <= self.params().error_tol_relative {
                 log::info!("Error decrease is below relative tolerance, stopping optimization");
                 return Ok(values);
             }
         }
 
         Err(OptError::MaxIterations(values))
+    }
+
+    fn add_observer(&mut self, observer: impl OptObserver + 'static)
+    where
+        Self: Sized,
+    {
+        self.observers_mut().add(observer);
+    }
+
+    /// Create a new optimizer with default params
+    fn new_default(graph: Graph) -> Self
+    where
+        Self: Sized,
+    {
+        Self::new(Self::Params::default(), graph)
     }
 }

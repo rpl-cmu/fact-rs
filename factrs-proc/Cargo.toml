@@ -8,7 +8,7 @@ authors = ["Easton Potokar", "Taylor Pool"]
 repository = "https://github.com/rpl-cmu/factrs"
 keywords = ["nonlinear", "optimization", "robotics", "estimation", "SLAM"]
 categories = ["science::robotics", "mathematics"]
-rust-version = "1.83"
+rust-version = "1.84"
 
 [lib]
 name = "factrs_proc"

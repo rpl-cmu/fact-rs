@@ -4,7 +4,7 @@ use super::{AccelUnbiased, Gravity, GyroUnbiased, ImuState};
 use crate::{
     dtype,
     linalg::{Matrix, Matrix3, Numeric, SupersetOf, Vector3},
-    variables::{ImuBias, MatrixLieGroup, Variable, SO3},
+    variables::{ImuBias, MatrixLieGroup, SO3, Variable},
 };
 
 /// Struct to hold the preintegrated Imu delta
