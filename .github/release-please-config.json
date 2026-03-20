@@ -1,0 +1,33 @@
+{
+  "packages": {
+    ".": {
+      "changelog-path": "CHANGELOG.md",
+      "release-type": "rust",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "factrs-bench/Cargo.toml",
+          "jsonpath": "$.json.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "factrs-proc/Cargo.toml",
+          "jsonpath": "$.json.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "factrs-typetag/Cargo.toml",
+          "jsonpath": "$.json.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "factrs-typetag/impl/Cargo.toml",
+          "jsonpath": "$.json.package.version"
+        }
+      ]
+    }
+  },
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}
