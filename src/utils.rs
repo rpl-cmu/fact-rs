@@ -25,7 +25,6 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
 
     let mut values: Values = Values::new();
     let mut graph = Graph::new();
-    let mut is_sqrt_inf = false;
 
     for line in BufReader::new(file).lines() {
         let line = line.expect("Missing line");
@@ -72,39 +71,30 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                 // If Cholesky fails (non-PD), the file likely stores
                 // upper-triangular sqrt information factors instead. Build the
                 // info matrix as U^T * U, permute, and decompose.
-                let noise = if is_sqrt_inf {
-                    #[rustfmt::skip]
-                    let sqrt_inf = Matrix3::new(
-                        m33, m13, m23,
-                        0.0, m11, m12,
-                        0.0, 0.0, m22,
-                    );
-                    GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
-                } else {
-                    #[rustfmt::skip]
+                #[rustfmt::skip]
                     let inf = Matrix3::new(
                         m33, m13, m23,
                         m13, m11, m12,
                         m23, m12, m22,
                     );
-                    match GaussianNoise::from_matrix_inf(inf.as_view()) {
-                        Some(n) => n,
-                        None => {
-                            is_sqrt_inf = true;
-                            log::warn!(
-                                "Information matrix is not positive definite for factor {}. \
+                let noise = match GaussianNoise::from_matrix_inf(inf.as_view()) {
+                    Some(n) => n,
+                    None => {
+                        // TODO(easton): If we find a single factor like this, we should probably just assume the whole file is sqrt information factors,
+                        // instead of trying to parse them as info factors first and then falling back to sqrt factors on failure.
+                        log::warn!(
+                            "Information matrix is not positive definite for factor {}. \
                                  Interpreting values as upper-triangular sqrt \
                                  information factors.",
-                                graph.len()
-                            );
-                            #[rustfmt::skip]
+                            graph.len()
+                        );
+                        #[rustfmt::skip]
                             let sqrt_inf = Matrix3::new(
                                 m33, m13, m23,
                                 0.0, m11, m12,
                                 0.0, 0.0, m22,
                             );
-                            GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
-                        }
+                        GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
                     }
                 };
 
@@ -174,19 +164,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                 // If Cholesky fails (non-PD), the file likely stores
                 // upper-triangular sqrt information factors instead. Build the
                 // info matrix as U^T * U, permute, and decompose.
-                let noise = if is_sqrt_inf {
-                    #[rustfmt::skip]
-                    let sqrt_inf = Matrix6::new(
-                        m44, m45, m46, m14, m24, m34,
-                        0.0, m55, m56, m15, m25, m35,
-                        0.0, 0.0, m66, m16, m26, m36,
-                        0.0, 0.0, 0.0, m11, m12, m13,
-                        0.0, 0.0, 0.0, 0.0, m22, m23,
-                        0.0, 0.0, 0.0, 0.0, 0.0, m33,
-                    );
-                    GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
-                } else {
-                    #[rustfmt::skip]
+                #[rustfmt::skip]
                     let inf = Matrix6::new(
                         m44, m45, m46, m14, m24, m34,
                         m45, m55, m56, m15, m25, m35,
@@ -195,16 +173,16 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                         m24, m25, m26, m12, m22, m23,
                         m34, m35, m36, m13, m23, m33,
                     );
-                    match GaussianNoise::from_matrix_inf(inf.as_view()) {
-                        Some(n) => n,
-                        None => {
-                            is_sqrt_inf = true;
-                            log::warn!(
-                                "Information matrix is not positive definite. \
+                let noise = match GaussianNoise::from_matrix_inf(inf.as_view()) {
+                    Some(n) => n,
+                    None => {
+                        log::warn!(
+                            "Information matrix is not positive definite for factor {}. \
                                  Interpreting values as upper-triangular sqrt \
-                                 information factors."
-                            );
-                            #[rustfmt::skip]
+                                 information factors.",
+                            graph.len()
+                        );
+                        #[rustfmt::skip]
                             let sqrt_inf = Matrix6::new(
                                 m44, m45, m46, m14, m24, m34,
                                 0.0, m55, m56, m15, m25, m35,
@@ -213,8 +191,7 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                                 0.0, 0.0, 0.0, 0.0, m22, m23,
                                 0.0, 0.0, 0.0, 0.0, 0.0, m33,
                             );
-                            GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
-                        }
+                        GaussianNoise::from_matrix_sqrt_inf(sqrt_inf)
                     }
                 };
 
