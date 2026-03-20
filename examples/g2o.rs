@@ -4,7 +4,7 @@ use std::{env, time::Instant};
 use factrs::rerun::RerunObserver;
 use factrs::{
     core::{GaussNewton, LevenMarquardt, SE2, SE3},
-    optimizers::{GncGemanMcClure, GncParams, GraduatedNonConvexity},
+    optimizers::{BaseOptParams, GncGemanMcClure, GncParams, GraduatedNonConvexity, LevenParams},
     traits::Optimizer,
     utils::load_g20,
 };
@@ -17,7 +17,7 @@ use rerun::{Arrows2D, Arrows3D, Points2D, Points3D};
 fn rerun_init(opt: &mut impl Optimizer, dim: &str, obj: &str) {
     // Setup the rerun & the callback
     let rec = rerun::RecordingStreamBuilder::new("factrs-g2o-example")
-        .connect_grpc_opts("rerun+http://127.0.0.1:9876/proxy")
+        .connect_grpc()
         .unwrap();
 
     // Log the graph
@@ -91,12 +91,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Make optimizer
     let mut optimizer: Box<dyn Optimizer> = match args[2].as_str() {
         "gauss" => {
-            let mut opt = GaussNewton::new_default(graph);
+            let params = BaseOptParams {
+                max_iterations: 200,
+                error_tol_relative: 1e-4,
+                ..Default::default()
+            };
+            let mut opt = GaussNewton::new(params, graph);
             rerun_init(&mut opt, dim, obj);
             Box::new(opt)
         }
         "leven" => {
-            let mut opt = LevenMarquardt::new_default(graph);
+            let mut params = LevenParams::default();
+            params.base.max_iterations = 200;
+            params.base.error_tol_relative = 1e-4;
+            params.min_model_fidelity = -1e4;
+            let mut opt = LevenMarquardt::new(params, graph);
             rerun_init(&mut opt, dim, obj);
             Box::new(opt)
         }

@@ -1,6 +1,3 @@
-#[cfg(feature = "rerun")]
-use std::net::{SocketAddr, SocketAddrV4};
-
 use factrs::{
     core::{BetweenResidual, Graph, PriorResidual, SE2, assign_symbols, fac},
     traits::Variable,
@@ -14,9 +11,8 @@ fn rerun_viz(_graph: &Graph) {}
 #[cfg(feature = "rerun")]
 fn rerun_viz(graph: &Graph) {
     // Setup the rerun
-    let socket = SocketAddrV4::new("0.0.0.0".parse().unwrap(), 9876);
     let rec = rerun::RecordingStreamBuilder::new("factrs-graph-viz")
-        .connect_tcp_opts(SocketAddr::V4(socket), rerun::default_flush_timeout())
+        .connect_grpc()
         .unwrap();
 
     // Send the graph

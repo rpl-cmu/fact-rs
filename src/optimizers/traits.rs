@@ -54,7 +54,7 @@ impl OptParams for BaseOptParams {
 /// This trait is used to observe the optimization process. It is called at each
 /// step of the optimization process.
 pub trait OptObserver {
-    fn on_step(&self, values: &Values, time: f64);
+    fn on_step(&self, values: &Values, time: i64);
 }
 
 /// Observer collection for optimization
@@ -74,7 +74,7 @@ impl OptObserverVec {
 
     pub fn notify(&self, values: &Values, idx: usize) {
         for callback in &self.observers {
-            callback.on_step(values, idx as f64);
+            callback.on_step(values, idx as i64);
         }
     }
 }
@@ -207,11 +207,11 @@ pub trait Optimizer {
                 log::info!("Error is below tolerance, stopping optimization");
                 return Ok(values);
             }
-            if error_decrease_abs <= self.params().error_tol_absolute {
+            if error_decrease_abs >= 0.0 && error_decrease_abs <= self.params().error_tol_absolute {
                 log::info!("Error decrease is below absolute tolerance, stopping optimization");
                 return Ok(values);
             }
-            if error_decrease_rel <= self.params().error_tol_relative {
+            if error_decrease_rel >= 0.0 && error_decrease_rel <= self.params().error_tol_relative {
                 log::info!("Error decrease is below relative tolerance, stopping optimization");
                 return Ok(values);
             }

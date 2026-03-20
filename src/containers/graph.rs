@@ -54,6 +54,10 @@ impl Graph {
         }
     }
 
+    pub fn at(&self, idx: usize) -> &Factor {
+        &self.factors[idx]
+    }
+
     pub fn add_factor(&mut self, factor: Factor) {
         self.factors.push(factor);
     }

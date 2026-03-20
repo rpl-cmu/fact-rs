@@ -238,7 +238,8 @@ impl ImuPreintegrator {
         B2: TypedSymbol<ImuBias>,
     {
         // Create noise from our covariance matrix
-        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view());
+        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view())
+            .expect("IMU preintegration covariance must be positive definite");
         // Create the residual
         let res = ImuPreintegrationResidual { delta: self.delta };
         // Build the factor
@@ -269,7 +270,8 @@ impl ImuPreintegrator {
         B2: Symbol,
     {
         // Create noise from our covariance matrix
-        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view());
+        let noise = GaussianNoise::from_matrix_cov(self.cov.as_view())
+            .expect("IMU preintegration covariance must be positive definite");
         // Create the residual
         let res = ImuPreintegrationResidual { delta: self.delta };
         // Build the factor
