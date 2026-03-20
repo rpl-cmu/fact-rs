@@ -161,7 +161,7 @@ impl<const N: usize> Debug for GaussianNoise<N> {
                     f,
                     "GaussianNoise{}(std: {:.p$})",
                     N,
-                    self.sqrt_inf[0],
+                    1.0 / self.sqrt_inf[0],
                     p = precision
                 );
             } else {
@@ -170,7 +170,7 @@ impl<const N: usize> Debug for GaussianNoise<N> {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
-                    write!(f, "{:.p$}", self.sqrt_inf[(i, i)], p = precision)?;
+                    write!(f, "{:.p$}", 1.0 / self.sqrt_inf[(i, i)], p = precision)?;
                 }
                 write!(f, "])")?;
             }

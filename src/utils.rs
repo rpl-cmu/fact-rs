@@ -92,9 +92,10 @@ pub fn load_g20(file: &str) -> (Graph, Values) {
                         None => {
                             is_sqrt_inf = true;
                             log::warn!(
-                                "Information matrix is not positive definite. \
+                                "Information matrix is not positive definite for factor {}. \
                                  Interpreting values as upper-triangular sqrt \
-                                 information factors."
+                                 information factors.",
+                                graph.len()
                             );
                             #[rustfmt::skip]
                             let sqrt_inf = Matrix3::new(

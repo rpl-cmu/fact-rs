@@ -25,6 +25,7 @@ set(BUILD_TESTING OFF CACHE BOOL "")
 set(BUILD_BENCHMARKS OFF CACHE BOOL "")
 set(PROVIDE_UNINSTALL_TARGET OFF CACHE BOOL "")
 set(BUILD_EXAMPLES OFF CACHE BOOL "") # I may need this...
+set(USE_CUDA OFF CACHE BOOL "")
 
 FetchContent_Declare(
     Ceres
@@ -75,3 +76,7 @@ target_link_libraries(bench PRIVATE nanobench gtsam Ceres::ceres)
 # Manually include some Ceres g2o helpers
 target_include_directories(bench PRIVATE ${Ceres_SOURCE_DIR}/examples/slam)
 set_property(TARGET bench PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+
+add_executable(optimize_g2o optimize_g2o.cpp)
+target_link_libraries(optimize_g2o PRIVATE gtsam)
+set_property(TARGET optimize_g2o PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
