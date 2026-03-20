@@ -25,7 +25,7 @@ pub struct LevenParams {
 impl Default for LevenParams {
     fn default() -> Self {
         Self {
-            lambda_min: 1e-10,
+            lambda_min: 1e-20,
             lambda_max: 1e5,
             min_model_fidelity: 1e-3,
             lambda_factor: 10.0,
@@ -56,6 +56,7 @@ pub struct LevenMarquardt {
     params: LevenParams,
     /// Observers for the optimizer
     observers: OptObserverVec,
+    /// The damping factor
     lambda: dtype,
     // For caching computation between steps
     graph_order: Option<GraphOrder>,
@@ -77,7 +78,7 @@ impl Optimizer for LevenMarquardt {
             solver: Default::default(),
             observers: OptObserverVec::default(),
             params,
-            lambda: 1e-5,
+            lambda: 1e-10,
             graph_order: None,
         }
     }
@@ -192,7 +193,7 @@ impl Optimizer for LevenMarquardt {
                 let curr_error = self.graph.error(&new_values);
 
                 // Check ratio of error changes -
-                // if too small, our linear model isn't representing the nonlinear model well
+                // if too small or negative, our linear model isn't representing the nonlinear model well
                 model_fidelity = (curr_error - old_error) / (curr_lin_error - old_lin_error);
                 if model_fidelity > self.params.min_model_fidelity {
                     break;

@@ -1,11 +1,11 @@
-use super::{delta::ImuDelta, Accel, Gravity, Gyro, ImuState};
+use super::{Accel, Gravity, Gyro, ImuState, delta::ImuDelta};
 use crate::{
     containers::{Factor, FactorBuilder, Symbol, TypedSymbol},
     dtype,
     linalg::{Const, ForwardProp, Matrix, Matrix3, VectorX},
     noise::GaussianNoise,
     residuals::Residual6,
-    variables::{ImuBias, MatrixLieGroup, Variable, VectorVar3, SE3, SO3},
+    variables::{ImuBias, MatrixLieGroup, SE3, SO3, Variable, VectorVar3},
 };
 // ------------------------- Covariances ------------------------- //
 
@@ -359,7 +359,7 @@ mod test {
         linalg::Vector3,
         optimizers::{GaussNewton, Optimizer},
         residuals::{Accel, Gyro, PriorResidual},
-        variables::{ImuBias, VectorVar3, SE3},
+        variables::{ImuBias, SE3, VectorVar3},
     };
 
     assign_symbols!(X: SE3; V: VectorVar3; B: ImuBias);
