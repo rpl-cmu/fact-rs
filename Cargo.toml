@@ -1,6 +1,6 @@
 [package]
 name = "factrs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 license = "MIT"
 description = "Factor graph optimization for robotics"
@@ -43,7 +43,7 @@ downcast-rs = "2.0.1"
 log = "0.4.22"
 pad-adapter = "0.1.1"
 dyn-clone = "1.0.17"
-factrs-proc = { version = "0.2.0", path = "./factrs-proc" }
+factrs-proc = { version = "0.3.0", path = "./factrs-proc" }
 
 # numerical 
 faer.workspace = true

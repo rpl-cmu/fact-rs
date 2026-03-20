@@ -2008,7 +2008,7 @@ dependencies = [
 
 [[package]]
 name = "factrs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "downcast-rs",
  "dyn-clone",
@@ -2034,7 +2034,7 @@ dependencies = [
 
 [[package]]
 name = "factrs-bench"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "diol",
  "factrs",
@@ -2051,7 +2051,7 @@ dependencies = [
 
 [[package]]
 name = "factrs-proc"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
