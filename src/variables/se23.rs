@@ -200,7 +200,7 @@ impl<T: Numeric> MatrixLieGroup for SE23<T> {
     }
 
     fn vee(xi: MatrixView<5, 5, T>) -> Vector9<T> {
-        let xi = Vector9::from_column_slice(&[
+        Vector9::from_column_slice(&[
             xi[(2, 1)],
             xi[(0, 2)],
             xi[(1, 0)],
@@ -210,9 +210,7 @@ impl<T: Numeric> MatrixLieGroup for SE23<T> {
             xi[(0, 4)],
             xi[(1, 4)],
             xi[(2, 4)],
-        ]);
-
-        xi
+        ])
     }
 
     fn hat_swap(xi: VectorView3<T>) -> Matrix3x9<T> {
