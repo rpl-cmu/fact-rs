@@ -17,7 +17,7 @@ type Alias<V, T> = <V as Variable>::Alias<T>;
 /// implement one of the `ResidualN` traits, and then [mark](factrs::mark) it to
 /// implement this.
 #[cfg_attr(feature = "serde", typetag::serde(tag = "tag"))]
-pub trait Residual: Debug + DynClone {
+pub trait Residual: Debug + DynClone + Send {
     fn dim_in(&self) -> usize;
 
     fn dim_out(&self) -> usize;

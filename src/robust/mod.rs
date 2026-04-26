@@ -33,7 +33,7 @@ use crate::dtype;
 /// to implement your own kernel, we recommend using
 /// [test_robust](crate::test_robust) to ensure weight = loss'(d) / d
 #[cfg_attr(feature = "serde", typetag::serde(tag = "tag"))]
-pub trait RobustCost: Debug + DynClone {
+pub trait RobustCost: Debug + DynClone + Send {
     /// Compute the loss \rho(x^2)
     fn loss(&self, d2: dtype) -> dtype;
 
