@@ -28,7 +28,7 @@ impl<P: VariableDtype> PriorResidual<P> {
 #[factrs::mark]
 impl<P> Residual1 for PriorResidual<P>
 where
-    P: VariableDtype + 'static,
+    P: VariableDtype + 'static + Send,
     AllocatorBuffer<P::Dim>: Sync + Send,
     DefaultAllocator: DualAllocator<P::Dim>,
     DualVector<P::Dim>: Copy,

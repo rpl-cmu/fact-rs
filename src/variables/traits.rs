@@ -15,7 +15,7 @@ use crate::{
 /// All variables must implement this trait to be used in the optimization
 /// algorithms. See [module level documentation](crate::variables) for more
 /// details.
-pub trait Variable: Clone + Sized + Display + Debug {
+pub trait Variable: Clone + Sized + Display + Debug + Send {
     /// Datatype of the variable
     type T: Numeric;
     /// Dimension of the Lie group / Tangent space
@@ -177,7 +177,7 @@ pub trait Variable: Clone + Sized + Display + Debug {
 /// Implemented for all types that implement [Variable].
 // TODO: Rename to VariableGeneric? Something like that
 #[cfg_attr(feature = "serde", typetag::serde(tag = "tag"))]
-pub trait VariableSafe: Debug + Display + Downcast {
+pub trait VariableSafe: Debug + Display + Downcast + Send {
     fn clone_box(&self) -> Box<dyn VariableSafe>;
 
     fn dim(&self) -> usize;
