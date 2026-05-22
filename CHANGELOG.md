@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/rpl-cmu/fact-rs/compare/v0.3.0...v0.3.1) (2026-05-22)
+
+
+### Features
+
+* Require Send for Graph and Factor ([#47](https://github.com/rpl-cmu/fact-rs/issues/47)) ([befb5b9](https://github.com/rpl-cmu/fact-rs/commit/befb5b954627b6fa719d05aace191aa6c680a7ab))
+
 ## [0.3.0](https://github.com/rpl-cmu/fact-rs/compare/v0.2.0...v0.3.0) (2026-03-20)
 
 
