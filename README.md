@@ -140,6 +140,14 @@ cargo add factrs
 ```
 </details>
 
+# Nix
+<!-- Using submodules is a little painful here. Maybe switch to declaring the git dependency in cargo? -->
+1. Initialize submodules with `git submodule update --init --recursive`
+2. From project root, run `nix-shell` for a development environment or `nix-build` for a complete build of the project
+
+You can use [direnv](https://direnv.net/) to automatically enter the development environment upon entry into the project.
+Simply copy [`.nix_envrc`](/.nix_envrc) to `.envrc`.
+[npins](https://github.com/andir/npins) is used to track the version of `nixpkgs` (and `rustc`) in use.
 
 # Contributions
 
