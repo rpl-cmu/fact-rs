@@ -10,6 +10,9 @@ use crate::dtype;
 
 /// Trait to solve sparse linear systems
 pub trait LinearSolver {
+    /// Invalidate any cached data in the solver
+    fn invalidate(&mut self) {}
+
     /// Solve a symmetric linear system
     ///
     /// This will be used by Cholesky to solve A^T A and by Levenberg-Marquardt
@@ -39,6 +42,10 @@ pub struct CholeskySolver {
 }
 
 impl LinearSolver for CholeskySolver {
+    fn invalidate(&mut self) {
+        self.sparsity_pattern = None;
+    }
+
     fn solve_symmetric(
         &mut self,
         a: SparseColMatRef<usize, dtype>,
@@ -84,6 +91,10 @@ pub struct QRSolver {
 }
 
 impl LinearSolver for QRSolver {
+    fn invalidate(&mut self) {
+        self.sparsity_pattern = None;
+    }
+
     fn solve_symmetric(
         &mut self,
         a: SparseColMatRef<usize, dtype>,
@@ -120,6 +131,10 @@ pub struct LUSolver {
 }
 
 impl LinearSolver for LUSolver {
+    fn invalidate(&mut self) {
+        self.sparsity_pattern = None;
+    }
+
     fn solve_symmetric(
         &mut self,
         a: SparseColMatRef<usize, dtype>,
