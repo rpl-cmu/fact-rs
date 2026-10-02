@@ -3,28 +3,39 @@ name = "factrs-bench"
 version = "0.3.0"
 edition = "2021"
 
+[features]
+default = ["factrs", "tiny-solver", "sophus"]
+factrs = ["dep:factrs", "dep:faer"]
+tiny-solver = ["dep:tiny-solver", "dep:rayon"]
+sophus = [
+    "dep:factrs",
+    "dep:sophus_opt",
+    "dep:sophus_lie",
+    "dep:sophus_autodiff",
+    "dep:sophus_faer",
+]
+
 [dependencies]
-faer.workspace = true
-nalgebra.workspace = true
-factrs = { version = "0.3.0", path = ".." }
+faer = { workspace = true, optional = true }
+factrs = { version = "0.3.0", path = "..", optional = true }
 pretty_env_logger = "0.5.0"
-rayon = "1.10.0"
+rayon = { version = "1.10.0", optional = true }
 
 # other dependencies
-tiny-solver = { version = "0.17" }
+tiny-solver = { version = "0.17", optional = true }
 # use a custom version of sophus to give
 # 1) Add cloning to graph/value structure for use in benchmarks
 # 2) Add stopping criteria to LM, so it takes same # of steps.
-sophus_opt = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", features = [
+sophus_opt = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", optional = true, features = [
     "simd",
 ] }
-sophus_lie = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn" }
-sophus_autodiff = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn" }
+sophus_lie = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", optional = true }
+sophus_autodiff = { git = "https://github.com/contagon/sophus-rs.git", branch = "clone-cost-fn", optional = true }
 # use an older version of faer to disable multithreaded in sophus
-sophus_faer = { version = "=0.20.1", package = "faer" }
+sophus_faer = { version = "=0.20.1", package = "faer", optional = true }
 
 [dev-dependencies]
-diol = { version = "0.13.0", default-features = false }
+divan = { version = "5.0.2", package = "codspeed-divan-compat" }
 
 [[bench]]
 name = "g2o"

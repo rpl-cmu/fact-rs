@@ -1,34 +1,41 @@
-use diol::prelude::*;
+use std::hint::black_box;
 
 const DATA_DIR: &str = "../examples/data/";
+const DATASETS: [&str; 3] = ["M3500.g2o", "sphere2500.g2o", "parking-garage.g2o"];
 
 // ------------------------- factrs ------------------------- //
+#[cfg(feature = "factrs")]
 use factrs::{core::GaussNewton, traits::Optimizer, utils::load_g20};
-fn factrs(bencher: Bencher, file: &str) {
+#[cfg(feature = "factrs")]
+#[divan::bench(args = DATASETS)]
+fn factrs(bencher: divan::Bencher, file: &str) {
     let (graph, init) = load_g20(&format!("{}{}", DATA_DIR, file));
-    bencher.bench(|| {
+    bencher.bench_local(|| {
         let mut opt: GaussNewton = GaussNewton::new_default(graph.clone());
-        let mut results = opt.optimize(init.clone());
-        black_box(&mut results);
+        black_box(opt.optimize(init.clone()).unwrap());
     });
 }
 
 // ------------------------- tiny-solver ------------------------- //
+#[cfg(feature = "tiny-solver")]
 use tiny_solver::{
     gauss_newton_optimizer, helper::read_g2o as load_tiny_g2o, optimizer::Optimizer as TSOptimizer,
 };
 
-fn tinysolver(bencher: Bencher, file: &str) {
+#[cfg(feature = "tiny-solver")]
+#[divan::bench(args = DATASETS)]
+fn tinysolver(bencher: divan::Bencher, file: &str) {
     let (graph, init) = load_tiny_g2o(&format!("{}{}", DATA_DIR, file));
-    bencher.bench(|| {
+    bencher.bench_local(|| {
         let gn = gauss_newton_optimizer::GaussNewtonOptimizer::new();
-        let mut results = gn.optimize(&graph, &init, None);
-        black_box(&mut results);
+        black_box(gn.optimize(&graph, &init, None));
     });
 }
 
 // ------------------------- sophus ------------------------- //
-fn sophus(bench: Bencher, file: &str) {
+#[cfg(feature = "sophus")]
+#[divan::bench(args = DATASETS)]
+fn sophus(bencher: divan::Bencher, file: &str) {
     let (graph, init) = if file.contains("M3500") {
         factrs_bench::sophus::load_g2o_2d(&format!("{}{}", DATA_DIR, file))
     } else {
@@ -44,30 +51,25 @@ fn sophus(bench: Bencher, file: &str) {
         error_tol_absolute: 1e-6,
         error_tol: 0.0,
     };
-    bench.bench(|| {
-        let mut results = sophus_opt::nlls::optimize_nlls(init.clone(), graph.clone(), params);
-        black_box(&mut results);
-    })
+    bencher.bench_local(|| {
+        black_box(sophus_opt::nlls::optimize_nlls(init.clone(), graph.clone(), params).unwrap());
+    });
 }
 
 // NOTE: tiny-solver is still using rayon under the hood for jacobian
 // computation, Setting the number of rayon threads to 1 DRASTICALLY degrades
 // it's performance.
-fn main() -> eyre::Result<()> {
+fn main() {
     // set everything to single-threaded
+    #[cfg(feature = "factrs")]
     faer::set_global_parallelism(faer::Par::Seq);
+    #[cfg(feature = "sophus")]
     sophus_faer::set_global_parallelism(sophus_faer::Parallelism::None);
+    #[cfg(feature = "tiny-solver")]
     rayon::ThreadPoolBuilder::new()
         .num_threads(1)
         .build_global()
         .unwrap();
 
-    let to_run = list![factrs, tinysolver, sophus];
-
-    let bench = Bench::from_args()?;
-    bench.register_many("3d", to_run, ["sphere2500.g2o", "parking-garage.g2o"]);
-    bench.register_many("2d", to_run, ["M3500.g2o"]);
-    bench.run()?;
-
-    Ok(())
+    divan::main();
 }

@@ -10,3 +10,8 @@ jobs:
     name: Checks
     uses: ./.github/workflows/reusable_checks.yml
     secrets: inherit
+
+  benchmark:
+    name: Benchmark
+    uses: ./.github/workflows/benchmark.yml
+    secrets: inherit

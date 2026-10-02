@@ -13,6 +13,7 @@ import polars as pl  # type: ignore
 import seaborn as sns  # type: ignore
 import matplotlib.pyplot as plt
 import matplotlib
+from divan_results import parse_divan
 
 DIR = Path("factrs-bench")
 
@@ -30,27 +31,13 @@ def setup_plot():
     plt.rcParams["mathtext.fontset"] = "stix"
 
 
-# Load data from rust.json
-with open(DIR / "rust.json", "r") as rust_file:
-    rust_data = json.load(rust_file)
 with open(DIR / "cpp_3d.json", "r") as cpp_file:
     cpp_data = json.load(cpp_file)
 with open(DIR / "cpp_2d.json", "r") as cpp_file:
     cpp_2d_data = json.load(cpp_file)
     cpp_data["results"].extend(cpp_2d_data["results"])
 
-# Extract benchmark results
-rust_benchmarks = [
-    {
-        "method": func["name"],
-        "filename": filename.replace('"', ""),
-        "time": t / 1e9,  # Convert from us to ms
-    }
-    for group in rust_data["groups"].values()
-    for func in group["function"]
-    for timings, filename in zip(func["timings"], group["args"]["Named"])
-    for t in timings
-]
+rust_benchmarks = parse_divan((DIR / "rust.txt").read_text())
 cpp_benchmarks = [
     {
         "method": result["name"].split("_")[0],
