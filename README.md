@@ -4,6 +4,7 @@
 [![crate](https://img.shields.io/crates/v/factrs.svg)](https://crates.io/crates/factrs)
 [![doc](https://docs.rs/factrs/badge.svg)](https://docs.rs/factrs)
 [![ci](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml/badge.svg)](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml)
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/rpl-cmu/fact-rs?utm_source=badge)
 
 fact.rs (pronounced factors) is a nonlinear least squares optimization library over factor graphs written in Rust.
 
@@ -132,6 +133,11 @@ cmake --build build
 ```
 
 both of which have alias commands in the root justfile (which also includes a plotting alias).
+
+Additionally, a set of benchmarks for the core operations of factrs (g2o loading, linearization, linear solves, full optimization, and Lie group operations) lives in [benches/factrs.rs](/benches/factrs.rs). These are tracked continuously on [CodSpeed](https://app.codspeed.io/rpl-cmu/fact-rs) and can be run locally with,
+```bash
+cargo bench --bench factrs
+```
 
 # Installation
 Simply add via cargo as you do any rust dependency,

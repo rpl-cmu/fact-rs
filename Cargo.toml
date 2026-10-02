@@ -95,6 +95,7 @@ matrixcompare = "0.3.0"
 pretty_env_logger = "0.5.0"
 nalgebra = { version = "0.34.1", features = ["compare"] }
 serde_json = { version = "1.0.135" }
+divan = { version = "5.0.2", package = "codspeed-divan-compat" }
 
 [patch.crates-io]
 # Uncomment if you want to use local version of factrs-typetag for development
@@ -114,3 +115,7 @@ opt-level = 3
 name = "serde"
 required-features = ["serde"]
 doc-scrape-examples = true
+
+[[bench]]
+name = "factrs"
+harness = false
