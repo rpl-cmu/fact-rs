@@ -13,6 +13,7 @@ import polars as pl  # type: ignore
 import seaborn as sns  # type: ignore
 import matplotlib.pyplot as plt
 import matplotlib
+from divan_results import parse_divan
 
 DIR = Path("factrs-bench")
 
@@ -36,23 +37,7 @@ with open(DIR / "cpp_2d.json", "r") as cpp_file:
     cpp_2d_data = json.load(cpp_file)
     cpp_data["results"].extend(cpp_2d_data["results"])
 
-# Extract Criterion benchmark results
-rust_benchmarks = []
-for sample_file in Path("target/criterion").glob("*/*/new/sample.json"):
-    with open(sample_file) as file:
-        sample = json.load(file)
-    with open(sample_file.with_name("benchmark.json")) as file:
-        benchmark = json.load(file)
-    rust_benchmarks.extend(
-        {
-            "method": benchmark["function_id"],
-            "filename": benchmark["group_id"],
-            "time": time / iterations / 1e6,  # Convert ns to ms
-        }
-        for iterations, time in zip(sample["iters"], sample["times"])
-    )
-if not rust_benchmarks:
-    raise RuntimeError("No Criterion samples found; run the Rust benchmarks first.")
+rust_benchmarks = parse_divan((DIR / "rust.txt").read_text())
 cpp_benchmarks = [
     {
         "method": result["name"].split("_")[0],

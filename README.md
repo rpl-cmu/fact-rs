@@ -3,7 +3,8 @@
 [![minimum rustc 1.84](https://img.shields.io/badge/rustc-1.84+-red.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
 [![crate](https://img.shields.io/crates/v/factrs.svg)](https://crates.io/crates/factrs)
 [![doc](https://docs.rs/factrs/badge.svg)](https://docs.rs/factrs)
-[![ci](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml/badge.svg)](https://github.com/rpl-cmu/factrs/actions/workflows/ci.yml)
+[![ci](https://github.com/rpl-cmu/factrs/actions/workflows/on_main.yml/badge.svg)](https://github.com/rpl-cmu/factrs/actions/workflows/on_main.yml)
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/rpl-cmu/fact-rs?utm_source=badge)
 
 fact.rs (pronounced factors) is a nonlinear least squares optimization library over factor graphs written in Rust.
 
@@ -120,7 +121,12 @@ Performance-wise, factrs is the fastest Rust library, and competitive with other
 
 *Note, gtsam and Ceres are faster for the parking garage due to leveraging the sparsity of the pose graph better using the Baye's tree, something that is planned for factrs.*
 
-To run the rust benchmarks after cloning, simply run,
+To benchmark only fact-rs on stable:
+```bash
+cargo bench -p factrs-bench --no-default-features --features factrs --bench g2o
+```
+
+To run the full rust benchmarks after cloning, simply run,
 ```bash
 cargo bench -p factrs-bench
 ```

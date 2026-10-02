@@ -35,7 +35,7 @@ sophus_autodiff = { git = "https://github.com/contagon/sophus-rs.git", branch = 
 sophus_faer = { version = "=0.20.1", package = "faer", optional = true }
 
 [dev-dependencies]
-criterion = { version = "5.0.2", package = "codspeed-criterion-compat" }
+divan = { version = "5.0.2", package = "codspeed-divan-compat" }
 
 [[bench]]
 name = "g2o"
