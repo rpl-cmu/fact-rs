@@ -78,7 +78,7 @@ mod optimize {
     use super::*;
 
     // Fixed number of iterations so the work done is deterministic
-    const MAX_ITERS: usize = 5;
+    const MAX_ITERS: usize = 2;
 
     #[divan::bench(args = DATASETS)]
     fn gauss_newton(bencher: divan::Bencher, file: &str) {
