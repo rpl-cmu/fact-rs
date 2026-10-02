@@ -28,12 +28,12 @@ cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 
 [workspace.dependencies]
 # TODO: Open issue to make disabling npy feature possible
-faer = { version = "0.23.2", default-features = false, features = [
+faer = { version = "0.24.4", default-features = false, features = [
     "std",
     "sparse-linalg",
     "npy",
 ] }
-faer-ext = { version = "0.7.1", features = ["nalgebra"] }
+faer-ext = { version = "0.8.0", features = ["nalgebra"] }
 nalgebra = { version = "0.34.1", features = ["compare"] }
 
 [dependencies]
