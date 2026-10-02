@@ -35,7 +35,7 @@ perf-reset:
 # requires uv and pyperf installed using uv
 bench-plot: perf-tune
     # rust ones
-    cargo bench -p factrs-bench --bench g2o -- --sample-count 100 --max-time 200 --output rust.json
+    cargo bench -p factrs-bench --bench g2o -- --noplot
     # cpp ones
     cmake -B build factrs-bench/cpp
     cmake --build build

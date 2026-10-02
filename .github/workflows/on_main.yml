@@ -33,6 +33,12 @@ jobs:
     uses: ./.github/workflows/reusable_checks.yml
     secrets: inherit
 
+  # Run benchmarks
+  benchmark:
+    name: Benchmark
+    uses: ./.github/workflows/benchmark.yml
+    secrets: inherit
+
   # Upload crates to crates.io if a release was created
   upload:
     name: Upload

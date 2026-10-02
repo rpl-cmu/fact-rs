@@ -1,0 +1,38 @@
+name: Performance
+
+on:
+  workflow_call:
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  benchmark:
+    name: CodSpeed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          toolchain: 1.87
+
+      - name: Install cargo-codspeed
+        run: cargo install --locked --version 5.0.2 cargo-codspeed
+
+      - name: Build benchmark
+        run: cargo codspeed build --locked -m simulation --profile bench -p factrs-bench --bench g2o --no-default-features --features factrs
+
+      - name: Run benchmark
+        uses: CodSpeedHQ/action@v5
+        with:
+          mode: simulation
+          run: cargo codspeed run -p factrs-bench --bench g2o

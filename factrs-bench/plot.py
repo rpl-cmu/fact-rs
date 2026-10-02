@@ -30,27 +30,29 @@ def setup_plot():
     plt.rcParams["mathtext.fontset"] = "stix"
 
 
-# Load data from rust.json
-with open(DIR / "rust.json", "r") as rust_file:
-    rust_data = json.load(rust_file)
 with open(DIR / "cpp_3d.json", "r") as cpp_file:
     cpp_data = json.load(cpp_file)
 with open(DIR / "cpp_2d.json", "r") as cpp_file:
     cpp_2d_data = json.load(cpp_file)
     cpp_data["results"].extend(cpp_2d_data["results"])
 
-# Extract benchmark results
-rust_benchmarks = [
-    {
-        "method": func["name"],
-        "filename": filename.replace('"', ""),
-        "time": t / 1e9,  # Convert from us to ms
-    }
-    for group in rust_data["groups"].values()
-    for func in group["function"]
-    for timings, filename in zip(func["timings"], group["args"]["Named"])
-    for t in timings
-]
+# Extract Criterion benchmark results
+rust_benchmarks = []
+for sample_file in Path("target/criterion").glob("*/*/new/sample.json"):
+    with open(sample_file) as file:
+        sample = json.load(file)
+    with open(sample_file.with_name("benchmark.json")) as file:
+        benchmark = json.load(file)
+    rust_benchmarks.extend(
+        {
+            "method": benchmark["function_id"],
+            "filename": benchmark["group_id"],
+            "time": time / iterations / 1e6,  # Convert ns to ms
+        }
+        for iterations, time in zip(sample["iters"], sample["times"])
+    )
+if not rust_benchmarks:
+    raise RuntimeError("No Criterion samples found; run the Rust benchmarks first.")
 cpp_benchmarks = [
     {
         "method": result["name"].split("_")[0],

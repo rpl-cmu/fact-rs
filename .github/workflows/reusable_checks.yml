@@ -21,7 +21,7 @@ jobs:
       run: sed -i 's|# factrs-typetag|factrs-typetag|' Cargo.toml
     
     - name: Setup Rust toolchain and cache
-      uses: actions-rust-lang/setup-rust-toolchain@v1
+      uses: actions-rust-lang/setup-rust-toolchain@v2
       with:
         toolchain: 1.87
         components: rustfmt,clippy
@@ -45,7 +45,7 @@ jobs:
       run: sed -i 's|# factrs-typetag|factrs-typetag|' Cargo.toml
 
     - name: Setup Rust toolchain and cache
-      uses: actions-rust-lang/setup-rust-toolchain@v1
+      uses: actions-rust-lang/setup-rust-toolchain@v2
       with:
         toolchain: 1.87
 

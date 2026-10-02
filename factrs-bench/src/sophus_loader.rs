@@ -4,8 +4,10 @@ use std::{
 };
 
 use factrs::{core::SO3, traits::Variable};
-use nalgebra::{Vector1, Vector2, Vector3};
-use sophus_autodiff::linalg::MatF64;
+use sophus_autodiff::{
+    linalg::MatF64,
+    nalgebra::{Vector1, Vector2, Vector3},
+};
 use sophus_lie::{Isometry2F64, Isometry3F64, Rotation2F64, Rotation3F64};
 use sophus_opt::{
     nlls::{
