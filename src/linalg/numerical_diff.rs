@@ -55,8 +55,8 @@ macro_rules! numerical_maker {
                 let mut jac: MatrixX = MatrixX::zeros(res.len(), dim);
                 let mut tvs = [$( VectorX::zeros(Variable::dim($name)), )*];
 
+                let mut curr_dim = 0;
                 for i in 0..$num {
-                    let mut curr_dim = 0;
                     for j in 0..tvs[i].len() {
                         tvs[i][j] = eps;
                         // TODO: It'd be more efficient to not have to add tangent vectors to each variable
@@ -127,8 +127,8 @@ macro_rules! numerical_variable_maker {
                 let mut jac: MatrixX = MatrixX::zeros(VOut::DIM, dim);
                 let mut tvs = [$( VectorX::zeros(Variable::dim($name)), )*];
 
+                let mut curr_dim = 0;
                 for i in 0..$num {
-                    let mut curr_dim = 0;
                     for j in 0..tvs[i].len() {
                         tvs[i][j] = eps;
                         // TODO: It'd be more efficient to not have to add tangent vectors to each variable
@@ -177,4 +177,60 @@ impl<const PWR: i32> NumericalDiff<PWR> {
         (4, v5, V5),
         (5, v6, V6)
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use matrixcompare::assert_matrix_eq;
+
+    use super::*;
+    use crate::variables::{SO2, VectorVar2, VectorVar3};
+
+    #[cfg(not(feature = "f32"))]
+    const PWR: i32 = 6;
+    #[cfg(not(feature = "f32"))]
+    const TOL: f64 = 1e-6;
+
+    #[cfg(feature = "f32")]
+    const PWR: i32 = 3;
+    #[cfg(feature = "f32")]
+    const TOL: f32 = 1e-2;
+
+    #[test]
+    fn jacobian_2_has_a_column_block_per_variable() {
+        // The variables have different dimensions, so a block written at the
+        // wrong offset cannot match by accident
+        let f = |a: VectorVar2, b: VectorVar3| {
+            VectorX::from_vec(vec![
+                a[0] * b[0] + a[1] * b[2],
+                a[1] * b[1] - a[0],
+                b[2] * b[2],
+            ])
+        };
+        let a = VectorVar2::new(1.0, 2.0);
+        let b = VectorVar3::new(3.0, 4.0, 5.0);
+
+        let got = NumericalDiff::<PWR>::jacobian_2(f, &a, &b).diff;
+
+        #[rustfmt::skip]
+        let exp = MatrixX::from_row_slice(3, 5, &[
+            b[0], b[2],  a[0], 0.0,  a[1],
+            -1.0, b[1],  0.0,  a[1], 0.0,
+            0.0,  0.0,   0.0,  0.0,  2.0 * b[2],
+        ]);
+        assert_matrix_eq!(got, exp, comp = abs, tol = TOL);
+    }
+
+    #[test]
+    fn jacobian_variable_2_has_a_column_block_per_variable() {
+        // d(x * y) / dx = d(x * y) / dy = 1, as SO2 is commutative
+        let x = SO2::from_theta(0.3);
+        let y = SO2::from_theta(-1.2);
+
+        let got =
+            NumericalDiff::<PWR>::jacobian_variable_2(|x: SO2, y: SO2| x.compose(&y), &x, &y).diff;
+
+        let exp = MatrixX::from_row_slice(1, 2, &[1.0, 1.0]);
+        assert_matrix_eq!(got, exp, comp = abs, tol = TOL);
+    }
 }
