@@ -5,6 +5,8 @@ use std::{
 
 use faer::sparse::{Pair, SymbolicSparseColMat};
 use pad_adapter::PadAdapter;
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 use super::{DefaultSymbolHandler, Idx, KeyFormatter, Values, ValuesOrder};
 // Once "debug_closure_helpers" is stabilized, we won't need this anymore
@@ -71,10 +73,32 @@ impl Graph {
     }
 
     pub fn error(&self, values: &Values) -> dtype {
+        #[cfg(feature = "rayon")]
+        {
+            // A factor's error costs tens of nanoseconds, so a task gets at
+            // least 512 of them. Sum in factor order, so the result does not
+            // depend on the number of threads.
+            let errors: Vec<dtype> = self
+                .factors
+                .par_iter()
+                .with_min_len(512)
+                .map(|f| f.error(values))
+                .collect();
+            errors.into_iter().sum()
+        }
+        #[cfg(not(feature = "rayon"))]
         self.factors.iter().map(|f| f.error(values)).sum()
     }
 
     pub fn linearize(&self, values: &Values) -> LinearGraph {
+        #[cfg(feature = "rayon")]
+        let factors = self
+            .factors
+            .par_iter()
+            .with_min_len(32)
+            .map(|f| f.linearize(values))
+            .collect();
+        #[cfg(not(feature = "rayon"))]
         let factors = self.factors.iter().map(|f| f.linearize(values)).collect();
         LinearGraph::from_vec(factors)
     }

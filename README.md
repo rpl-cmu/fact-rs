@@ -15,6 +15,7 @@ Currently, it supports the following features
 - Common Lie Groups supported (SO2, SO3, SE2, SE3) with optimization in Lie
   Algebras
 - Automatic differentiation via dual numbers
+- Optional multithreaded linearization via the `rayon` feature
 - Serialization of graphs & variables via optional serde support
 - Easy conversion to rerun types for straightforward visualization
 

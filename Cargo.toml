@@ -64,6 +64,9 @@ rerun = { version = "0.30.2", optional = true, default-features = false, feature
 ] }
 indexmap = { version = "2.9.0", default-features = false }
 
+# multithreading
+rayon = { version = "1.10.0", optional = true }
+
 
 [features]
 # Run everything with f32 instead of the default f64
@@ -75,8 +78,9 @@ left = []
 # use SO(n) x R instead of SE(n) for exponential map
 fake_exp = []
 
-# Add multithreaded support (may run slower on smaller problems)
-rayon = ["faer/rayon"]
+# Add multithreaded support (may run slower on smaller problems): factors are
+# linearized and evaluated in parallel, and faer uses its parallel kernels
+rayon = ["faer/rayon", "dep:rayon"]
 
 # Add support for serialization
 serde = [

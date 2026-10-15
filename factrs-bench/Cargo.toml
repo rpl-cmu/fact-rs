@@ -40,3 +40,8 @@ divan = { version = "5.0.2", package = "codspeed-divan-compat" }
 [[bench]]
 name = "g2o"
 harness = false
+
+[[bench]]
+name = "reprojection"
+harness = false
+required-features = ["factrs"]
