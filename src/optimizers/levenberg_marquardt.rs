@@ -43,7 +43,7 @@ impl OptParams for LevenParams {
 
 /// The Levenberg-Marquadt optimizer
 ///
-/// Solves a damped version of the normal equations,  
+/// Solves a damped version of the normal equations,
 /// $$A^\top A \Delta \Theta + \lambda diag(A) = A^\top b$$
 /// each optimizer steps. It defaults
 /// to using [CholeskySolver](crate::linear::CholeskySolver) under the hood, but
@@ -114,6 +114,7 @@ impl Optimizer for LevenMarquardt {
             self.graph
                 .sparsity_pattern(ValuesOrder::from_values(values)),
         );
+        self.solver.invalidate();
 
         vec!["   Lambda   ", "  Fidelity  "]
     }
