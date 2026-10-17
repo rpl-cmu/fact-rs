@@ -76,6 +76,7 @@ impl Optimizer for GaussNewton {
             self.graph
                 .sparsity_pattern(ValuesOrder::from_values(_values)),
         );
+        self.solver.invalidate();
 
         Vec::new()
     }
