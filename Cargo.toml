@@ -9,7 +9,7 @@ authors = ["Easton Potokar", "Taylor Pool"]
 repository = "https://github.com/rpl-cmu/factrs"
 keywords = ["nonlinear", "optimization", "robotics", "estimation", "SLAM"]
 categories = ["science::robotics", "mathematics"]
-rust-version = "1.87"
+rust-version = "1.89"
 exclude = ["examples/data/*"]
 
 [workspace]
@@ -34,7 +34,7 @@ faer = { version = "0.24.4", default-features = false, features = [
     "npy",
 ] }
 faer-ext = { version = "0.8.0", features = ["nalgebra"] }
-nalgebra = { version = "0.34.1", features = ["compare"] }
+nalgebra = { version = "0.35.0", features = ["compare"] }
 
 [dependencies]
 foldhash = "0.2.0"
@@ -49,8 +49,8 @@ factrs-proc = { version = "0.3.0", path = "./factrs-proc" }
 faer.workspace = true
 nalgebra.workspace = true
 faer-ext.workspace = true
-simba = { version = "0.9.0", default-features = false }
-num-dual = "0.13.1"
+simba = { version = "0.10.2", default-features = false }
+num-dual = "0.15.1"
 matrixcompare = { version = "0.3.0" }
 statrs = { version = "0.18.0", default-features = false }
 
@@ -97,12 +97,14 @@ rerun = ["dep:rerun"]
 [dev-dependencies]
 matrixcompare = "0.3.0"
 pretty_env_logger = "0.5.0"
-nalgebra = { version = "0.34.1", features = ["compare"] }
+nalgebra = { version = "0.35.0", features = ["compare"] }
 serde_json = { version = "1.0.135" }
 
 [patch.crates-io]
 # Uncomment if you want to use local version of factrs-typetag for development
 # factrs-typetag = { path = "./factrs-typetag" }
+# TODO: Remove once faer-ext with nalgebra 0.35 support is released
+faer-ext = { git = "https://github.com/HeytalePazguato/faer-ext", rev = "7c3c97b075072f1d1191c85eb25ce8807f307edb" }
 
 [profile.bench]
 lto = true

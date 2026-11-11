@@ -84,7 +84,7 @@ mod ser_de {
     // Make sure it serializes properly
     #[test]
     fn test_json_serialize() {
-        let trait_object = &MyVar::new(5.5) as &dyn VariableSafe;
+        let trait_object = &MyVar::<dtype>::new(5.5) as &dyn VariableSafe;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"MyVar","val":[5.5]}"#;
         println!("json: {json}");
@@ -96,13 +96,13 @@ mod ser_de {
         let json = r#"{"tag":"MyVar","val":[4.5]}"#;
         let trait_object: Box<dyn VariableSafe> = serde_json::from_str(json).unwrap();
         let var: &MyVar = trait_object.downcast_ref::<MyVar>().unwrap();
-        assert_variable_eq!(var, MyVar::new(4.5));
+        assert_variable_eq!(var, MyVar::<dtype>::new(4.5));
     }
 
     // Make sure the prior can as well
     #[test]
     fn test_prior_serialize() {
-        let trait_object = &PriorResidual::new(MyVar::new(2.3)) as &dyn Residual;
+        let trait_object = &PriorResidual::new(MyVar::<dtype>::new(2.3)) as &dyn Residual;
         let json = serde_json::to_string(trait_object).unwrap();
         let expected = r#"{"tag":"PriorResidual<MyVar>","prior":{"val":[2.3]}}"#;
         println!("json: {json}");
@@ -115,7 +115,7 @@ mod ser_de {
         let trait_object: Box<dyn Residual> = serde_json::from_str(json).unwrap();
 
         let mut values = Values::new();
-        values.insert_unchecked(X(0), MyVar::new(1.2));
+        values.insert_unchecked(X(0), MyVar::<dtype>::new(1.2));
         let error = trait_object.residual(&values, &[X(0).into()])[0];
 
         assert_eq!(trait_object.dim_in(), 1);

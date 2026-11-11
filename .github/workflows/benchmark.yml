@@ -23,7 +23,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
-          toolchain: 1.87
+          toolchain: 1.89
 
       - name: Install cargo-codspeed
         run: cargo install --locked --version 5.0.2 cargo-codspeed
